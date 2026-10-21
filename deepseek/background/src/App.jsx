@@ -72,7 +72,7 @@ export function App({ controller }) {
           <div className="bgp-preview-shade" style={{ opacity: hasImage && value.enabled ? value.shade / 100 : 0 }} />
           <div className="bgp-preview-chrome"><span /><span /><span /><small>DeepSeek Harness</small></div>
           <div className="bgp-mini-sidebar" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${hasImage && value.enabled ? value.surfaceOpacity : 100}%, transparent)` }}><div className="bgp-mini-logo">◇</div><div /><div /><div /><span /><div /></div>
-          <div className="bgp-mini-main"><span className="bgp-preview-label">你的工作区，换一幅风景</span><div className="bgp-mini-message" style={{ backgroundColor: `color-mix(in srgb, #729b8e ${hasImage && value.enabled ? value.dialogOpacity : 100}%, transparent)` }}>今天想做些什么？</div><div className="bgp-mini-response" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${hasImage && value.enabled ? value.outputOpacity : 100}%, transparent)` }}>从一个新想法开始。<span /><span /></div><div className="bgp-mini-input" style={{ opacity: 0.7 + value.conversationOpacity / 400 }}>描述你想要构建的内容 <span>↑</span></div></div>
+          <div className="bgp-mini-main"><span className="bgp-preview-label">你的工作区，换一幅风景</span><div className="bgp-mini-message" style={{ backgroundColor: `color-mix(in srgb, #729b8e ${hasImage && value.enabled ? value.dialogOpacity : 100}%, transparent)` }}>今天想做些什么？</div><div className="bgp-mini-response" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${hasImage && value.enabled ? value.dialogOpacity : 100}%, transparent)` }}>从一个新想法开始。<span /><span /></div><div className="bgp-mini-input" style={{ opacity: 0.7 + value.conversationOpacity / 400 }}>描述你想要构建的内容 <span>↑</span></div></div>
           {!hasImage && <div className="bgp-preview-empty"><ImageIcon size={29} /><span>导入图片后预览效果</span></div>}
         </div>
         <div className="bgp-preview-caption"><span>文字与控件保持清晰</span><span>预览比例随窗口变化</span></div>
@@ -82,8 +82,8 @@ export function App({ controller }) {
           <Slider label="暗色遮罩" description="压低亮部，突出前景内容" value={value.shade} max={80} disabled={disabled || !hasImage} onChange={change('shade')} />
           <Slider label="面板不透明度" description="调节侧边栏等面板的透明程度" value={value.surfaceOpacity} disabled={disabled || !hasImage} onChange={change('surfaceOpacity')} />
           <Slider label="对话透明度" description="调节输入框的透明程度" value={value.conversationOpacity} disabled={disabled || !hasImage} onChange={change('conversationOpacity')} />
-          <Slider label="对话框透明度" description="调节消息气泡的透明程度" value={value.dialogOpacity} disabled={disabled || !hasImage} onChange={change('dialogOpacity')} />
-          <Slider label="输出内容透明度" description="调节 AI 输出卡片、代码块和工具结果" value={value.outputOpacity} disabled={disabled || !hasImage} onChange={change('outputOpacity')} />
+          <Slider label="对话框透明度" description="调节对话区域的透明程度（气泡与 AI 回复卡片）" value={value.dialogOpacity} disabled={disabled || !hasImage} onChange={change('dialogOpacity')} />
+          <Slider label="输出内容透明度" description="调节代码块和工具结果的透明程度" value={value.outputOpacity} disabled={disabled || !hasImage} onChange={change('outputOpacity')} />
         </div></div>
       </section>
     </div>
