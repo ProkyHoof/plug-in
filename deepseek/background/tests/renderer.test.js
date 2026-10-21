@@ -1,8 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { BackgroundRenderer } from '../src/renderer.js';
 import { DEFAULTS } from '../src/config.js';
+
+test('样式表包含 Windows 自定义标题栏 frame 透明修复，避免遮挡整幅背景', () => {
+  const css = readFileSync(fileURLToPath(new URL('../src/style.css', import.meta.url)), 'utf8');
+  // 宿主规则 [data-windows-titlebar] .BynINW_frame 会把 frame 背景改成侧边栏填充色，
+  // 导致 Windows 桌面端中间区域不透明、背景图被完全遮挡。插件必须覆盖该规则。
+  assert.match(css, /html\[data-windows-titlebar\]\s*body\[data-dsh-background-image\]\s*\.BynINW_frame\s*\{\s*background\s*:\s*transparent\s*!important\s*\}/);
+});
 
 const CUSTOM_STYLE = 'style[data-dsh-background-custom]';
 

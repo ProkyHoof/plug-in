@@ -56,3 +56,12 @@
   - 切换深色主题后设置页与背景底色正常，更新了 `docs/settings-dark.png` 与 `docs/chat-preview.png`。
 
 截图使用程序生成的抽象测试图，不包含用户私人图片。
+
+## 追加记录：1.1.1 Windows 桌面端会话页背景遮挡修复
+
+日期：2026-10-22。1.1.0 安装到真实桌面版后，侧边栏出现「背景图片」入口、背景层与图片均已注入，但会话页（聊天对话页）整体仍是不透明背景。
+
+- 以 `--remote-debugging-port=9222` 启动桌面版 Electron（0.2.1-rc.2，Chrome 152）后用 CDP 检查 DOM：背景层激活、图片数据完好，而祖先链中第一个不透明元素为 `.BynINW_frame`。
+- 定位到宿主规则：Windows 自定义标题栏下 `[data-windows-titlebar] .BynINW_frame { background: var(--dsw-specific-sidebar-fill); }` 与 `.BynINW_centerCol { background: var(--dsw-alias-bg-base); }`；插件只把后者用到的 `--dsw-alias-bg-base` 改为透明，frame 仍为不透明侧边栏填充色，盖住整个中间区域。Web 模板无 `data-windows-titlebar` 标记，因此之前的 Web 验证未暴露此问题。
+- 修复：新增 `html[data-windows-titlebar] body[data-dsh-background-image] .BynINW_frame { background: transparent !important; }`。侧边栏列 `.BynINW_sidebarCol` 与标题栏条 `.BynINW_frame::before` 各自独立绘制填充，窗口控件与侧边栏外观不受影响；macOS 宿主的 frame 本身透明，规则不产生作用。
+- 在运行中的真实桌面端注入修复样式确认：会话页背景图完整显示，侧边栏与标题栏保持原填充；新增样式表回归测试，`npm run check` 19 项全部通过。

@@ -71,10 +71,10 @@ npm run check
 npm pack
 ```
 
-版本 `1.1.0` 会生成 `dsh-background-image-1.1.0.tgz`。在上述插件目录中取得包的绝对路径，再选择对应平台安装：
+版本 `1.1.1` 会生成 `dsh-background-image-1.1.1.tgz`。在上述插件目录中取得包的绝对路径，再选择对应平台安装：
 
 ```
-$pluginPackage = (Resolve-Path './dsh-background-image-1.1.0.tgz').Path
+$pluginPackage = (Resolve-Path './dsh-background-image-1.1.1.tgz').Path
 
 # 桌面版：使用桌面程序自带的 dsh，或前文的 & $dshCli 调用方式。
 dsh plugin --profile desktop add "$pluginPackage"
@@ -235,6 +235,7 @@ npm pack        # 构建并生成可分发的 .tgz 包
 
 ## 变更记录
 
+* **1.1.1**：修复 Windows 桌面端（带自定义标题栏）外层 frame 背景为不透明填充色、遮挡整幅背景，导致会话页背景不显示的问题；补充回归测试。
 * **1.1.0**
   * 新增图片滤镜：亮度、对比度、饱和度、灰度、褐化、色相旋转；新增图片缩放。
   * 新增遮罩颜色、背景底色与自定义 CSS（任意样式，独立于背景图片生效）。
