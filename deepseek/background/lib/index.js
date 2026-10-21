@@ -13,6 +13,8 @@ var DEFAULTS = Object.freeze({
   shade: 15,
   surfaceOpacity: 80,
   conversationOpacity: 80,
+  dialogOpacity: 80,
+  outputOpacity: 100,
   fit: "cover",
   position: "center"
 });

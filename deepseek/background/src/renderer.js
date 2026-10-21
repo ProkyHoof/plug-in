@@ -1,7 +1,7 @@
 import { imageStyles, validateConfig } from './config.js';
 
 const ATTRIBUTE = 'data-dsh-background-image';
-const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-surface', '--dsh-bg-conversation'];
+const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-bubble-highlight', '--dsh-bg-output-surface', '--dsh-bg-code', '--dsh-bg-code-banner', '--dsh-bg-surface', '--dsh-bg-conversation', '--dsh-bg-dialog', '--dsh-bg-output'];
 
 export class BackgroundRenderer {
   constructor(document) {
@@ -31,6 +31,10 @@ export class BackgroundRenderer {
     this.body.style.setProperty('--dsh-bg-sidebar', styles.getPropertyValue('--dsw-specific-sidebar-fill').trim() || (dark ? '#1b1b1c' : '#f9fafb'));
     this.body.style.setProperty('--dsh-bg-input', styles.getPropertyValue('--dsw-specific-input-major').trim() || (dark ? '#2c2c2e' : '#ffffff'));
     this.body.style.setProperty('--dsh-bg-bubble', styles.getPropertyValue('--dsw-specific-bubble').trim() || (dark ? '#2c2c2e' : '#edf3fe'));
+    this.body.style.setProperty('--dsh-bg-bubble-highlight', styles.getPropertyValue('--dsw-specific-bubble-highlight').trim() || (dark ? '#3a4a55' : '#dce9ff'));
+    this.body.style.setProperty('--dsh-bg-output-surface', styles.getPropertyValue('--dsw-alias-bg-layer-1').trim() || (dark ? '#26262b' : '#ffffff'));
+    this.body.style.setProperty('--dsh-bg-code', styles.getPropertyValue('--dsw-alias-markdown-code-block').trim() || (dark ? '#232327' : '#f6f8fa'));
+    this.body.style.setProperty('--dsh-bg-code-banner', styles.getPropertyValue('--dsw-alias-markdown-code-block-banner').trim() || (dark ? '#2b2b2f' : '#eceff3'));
   }
 
   apply(raw) {
@@ -42,6 +46,8 @@ export class BackgroundRenderer {
     this.mask.style.backgroundColor = `rgba(0, 0, 0, ${config.shade / 100})`;
     this.body.style.setProperty('--dsh-bg-surface', `${config.surfaceOpacity}%`);
     this.body.style.setProperty('--dsh-bg-conversation', `${config.conversationOpacity}%`);
+    this.body.style.setProperty('--dsh-bg-dialog', `${config.dialogOpacity}%`);
+    this.body.style.setProperty('--dsh-bg-output', `${config.outputOpacity}%`);
     this.layer.hidden = false;
     this.body.setAttribute(ATTRIBUTE, '');
     this.active = true;

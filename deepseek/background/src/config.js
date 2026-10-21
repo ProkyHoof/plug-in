@@ -4,7 +4,8 @@ export const MAX_IMAGE_BYTES = 360 * 1024;
 export const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 export const DEFAULTS = Object.freeze({
   enabled: false, image: '', imageName: '', opacity: 55, blur: 0,
-  shade: 15, surfaceOpacity: 80, conversationOpacity: 80, fit: 'cover', position: 'center',
+  shade: 15, surfaceOpacity: 80, conversationOpacity: 80, dialogOpacity: 80, outputOpacity: 100,
+  fit: 'cover', position: 'center',
 });
 
 export function normalizeImage(value) {
@@ -32,7 +33,7 @@ export function validateConfig(input) {
   config.image = normalizeImage(input.image);
   if (typeof input.imageName !== 'string' || input.imageName.length > 200) throw new Error('图片名称最多 200 个字符。');
   config.imageName = input.imageName;
-  for (const [key, max] of [['opacity', 100], ['blur', 30], ['shade', 80], ['surfaceOpacity', 100], ['conversationOpacity', 100]]) {
+  for (const [key, max] of [['opacity', 100], ['blur', 30], ['shade', 80], ['surfaceOpacity', 100], ['conversationOpacity', 100], ['dialogOpacity', 100], ['outputOpacity', 100]]) {
     if (input[key] === undefined) continue; // 旧版本保存的配置缺少新字段时，保留默认值。
     if (!Number.isFinite(input[key]) || input[key] < 0 || input[key] > max) throw new Error(`背景参数 ${key} 超出有效范围。`);
     config[key] = input[key];

@@ -10,7 +10,7 @@ test('拒绝脚本、文件路径、SVG、携带凭据的链接及超量图片',
 
 test('参数校验防止非法数值或类型进入背景样式', () => {
   assert.deepEqual(validateConfig(DEFAULTS), DEFAULTS);
-  for (const input of [{ blur: NaN }, { opacity: 101 }, { shade: -1 }, { surfaceOpacity: -5 }, { conversationOpacity: 101 }, { enabled: 'true' }, { fit: 'contain;position:fixed' }, { imageName: 'x'.repeat(201) }]) assert.throws(() => validateConfig({ ...DEFAULTS, ...input }));
+  for (const input of [{ blur: NaN }, { opacity: 101 }, { shade: -1 }, { surfaceOpacity: -5 }, { conversationOpacity: 101 }, { dialogOpacity: 101 }, { outputOpacity: -1 }, { enabled: 'true' }, { fit: 'contain;position:fixed' }, { imageName: 'x'.repeat(201) }]) assert.throws(() => validateConfig({ ...DEFAULTS, ...input }));
   assert.equal(validateConfig({ ...DEFAULTS, foreign: 'discarded' }).foreign, undefined);
   assert.equal(validateConfig({ ...DEFAULTS, conversationOpacity: 60 }).conversationOpacity, 60);
 });
@@ -19,6 +19,8 @@ test('旧版保存的配置缺少新字段时使用默认值，不报错', () =>
   const legacy = { enabled: true, image: 'https://example.com/x.png', imageName: 'x', opacity: 50, blur: 2, shade: 10, surfaceOpacity: 70, fit: 'cover', position: 'center' };
   const config = validateConfig(legacy);
   assert.equal(config.conversationOpacity, 80);
+  assert.equal(config.dialogOpacity, 80);
+  assert.equal(config.outputOpacity, 100);
   assert.equal(config.surfaceOpacity, 70);
 });
 
