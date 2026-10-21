@@ -38,3 +38,21 @@
 - 新增 `dialogOpacity`（对话框透明度，默认 80%）控制对话区域（消息气泡与 AI 回复卡片），`outputOpacity`（输出内容透明度，默认 100% 保持原样）控制代码块与工具结果；「对话透明度」收窄为只调节输入框。
 - 渲染层新增气泡高亮、对话表面、代码块等颜色的采样与恢复；设置页自身使用采样到的实色表面，避免随透明度设置变透。
 - 覆盖参数校验、渲染变量设置与恢复、旧配置兼容；`npm run check` 12 项全部通过。
+
+## 追加记录：1.1.0 持久化修复与样式定制扩展
+
+日期：2026-10-21。环境：Windows、Node.js v22.23.2、npm 10.9.8、Harness 0.2.1-rc.2（桌面版自带 CLI）。
+
+- **修复持久化 bug**：Host schema（`src/index.js`）缺少 `conversationOpacity/dialogOpacity/outputOpacity` 等字段。实测 schemastery 3.18.5 的普通 `parse` 虽保留未知键，但保存配置时经过的 `simplify()` 会丢弃未声明字段，导致这些参数重启后回退默认值。重写为所有字段由 `src/config.js` 的 `DEFAULTS/RANGES` 派生声明，并新增 `tests/host.test.js` 回归：schema 字段、默认值与 `DEFAULTS` 完全一致，数值范围与 `RANGES` 同步。
+- **新增样式能力**：图片滤镜（亮度、对比度、饱和度 0–200%，灰度、褐化 0–100%，色相旋转 -180–180°）、图片缩放 50–200%、遮罩颜色 `maskColor`、可选背景底色 `canvasColor`、自定义 CSS（开关 + 最长 10000 字符，独立 `<style data-dsh-background-custom>` 注入，关闭背景后仍生效，关闭开关或卸载即移除）。颜色统一为十六进制并展开短写，非法字符串无法进入样式。
+- 设置页重组为 01 图片来源、02 布局、03 颜色与遮罩、04 滤镜、05 氛围、06 自定义 CSS 六张卡片。
+- 自动化测试扩到 18 项，覆盖颜色归一化与 rgba 合成、滤镜与缩放 transform、自定义 CSS 注入/移除/独立生效、schema 同步、打包客户端全流程；`npm run check` 18 项全部通过，`npm pack` 生成 `dsh-background-image-1.1.0.tgz`（9 个文件）。
+- **真实 Harness 验证**（独立测试 profile，web 模板与桌面壳同构，未改动真实 desktop profile）：用桌面版自带 CLI 安装本地 tgz，浏览器实测——
+  - 六张卡片全部渲染，上传 1280×800 测试 PNG 成功并即时预览；
+  - 设置缩放 120%、亮度 130%、灰度 20%、遮罩色 `#1a3a5c`、底色 `#101828`、启用渐变遮罩自定义 CSS，保存后读取 profile 的 `cordis.patch.yml`，确认全部新增字段（含三个透明度字段与自定义 CSS）均已写入磁盘；
+  - 重启服务后刷新，图片、滤镜、遮罩、底色与自定义 CSS 全部自动恢复，确认 schema 修复生效；
+  - 背景层 `z-index:-1`、`pointer-events:none`，中心区域命中的是输入控件而非背景层，鼠标交互不受影响；
+  - 关闭背景开关后背景层隐藏、宿主样式恢复，关闭自定义 CSS 开关后对应 style 元素立即移除，重新开启并保存均正常；
+  - 切换深色主题后设置页与背景底色正常，更新了 `docs/settings-dark.png` 与 `docs/chat-preview.png`。
+
+截图使用程序生成的抽象测试图，不包含用户私人图片。

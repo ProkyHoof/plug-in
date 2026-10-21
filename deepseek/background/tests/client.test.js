@@ -50,6 +50,28 @@ test('实际 Client 包完成注册、调节、保存和资源清理', async () 
     assert.equal(data.value.enabled, true, '移除预览不立刻改写持久化数据');
     await act(async () => button('重新载入').click());
     assert.equal(document.body.hasAttribute('data-dsh-background-image'), true);
+    // 滤镜滑块经 UI 调整后可保存。
+    const setRange = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set;
+    const brightness = document.querySelector('input[type=range][aria-label="亮度"]');
+    await act(async () => { setRange.call(brightness, '130'); brightness.dispatchEvent(new dom.window.Event('input', { bubbles: true })); });
+    await act(async () => button('保存背景').click());
+    assert.equal(data.value.brightness, 130);
+    assert.match(document.querySelector('.dsh-background-picture').style.filter, /brightness\(130%\)/);
+    // 自定义 CSS：开关、实时注入、保存、停用清理。
+    assert.equal(document.querySelector('style[data-dsh-background-custom]'), null);
+    const cssSwitch = document.querySelector('[aria-label="启用自定义 CSS"]');
+    await act(async () => cssSwitch.click());
+    const cssEditor = document.querySelector('textarea[aria-label="自定义 CSS 代码"]');
+    assert.equal(cssEditor.disabled, false);
+    const setTextarea = Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value').set;
+    const sampleCss = '.dsh-background-picture{filter:none!important}';
+    await act(async () => { setTextarea.call(cssEditor, sampleCss); cssEditor.dispatchEvent(new dom.window.Event('input', { bubbles: true })); });
+    assert.ok(document.querySelector('style[data-dsh-background-custom]').textContent.includes('filter:none'));
+    await act(async () => button('保存背景').click());
+    assert.equal(data.value.customCssEnabled, true);
+    assert.equal(data.value.customCss, sampleCss);
+    await act(async () => cssSwitch.click());
+    assert.equal(document.querySelector('style[data-dsh-background-custom]'), null);
   } finally {
     await act(async () => root.unmount());
     effects.reverse().forEach(dispose => dispose?.());

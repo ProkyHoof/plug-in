@@ -1,28 +1,28 @@
 # DeepSeek Harness 背景图片插件
 
-为 DeepSeek Harness 添加自定义背景图片，支持本地导入、HTTPS 图片链接和实时预览，提供中文界面与中文源码注释。
+为 DeepSeek Harness 添加可深度定制的自定义背景：本地导入或 HTTPS 图片链接、六种图片滤镜、缩放与遮罩颜色、多档面板透明度，以及可以修改任意样式的自定义 CSS。提供中文界面与中文源码注释。
 
 从左侧「背景图片」进入，也可以在「设置 → 通用」点击「设置背景」。
 
-
-
-![Harness 会话页背景效果，使用抽象测试图](docs/chat-preview.png)
+![Harness 会话页背景效果，使用程序生成的测试图](docs/chat-preview.png)
 
 ## 功能与兼容性
 
+* 点击或拖入 PNG、JPEG、WebP、AVIF、GIF 图片，也可载入 HTTPS 图片直链；本地图片自动压缩后保存在 profile 中，不依赖原文件、不需要图床。
 
+* 显示方式：铺满、完整显示、平铺，配合居中、顶部、底部、左侧、右侧对齐；图片缩放支持 50%–200%。
 
-* 点击或拖入 PNG、JPEG、WebP、AVIF、GIF 图片，也可载入 HTTPS 图片直链。
+* 图片滤镜：亮度、对比度、饱和度（0–200%）、灰度、褐化（0–100%）、色相旋转（-180–180°），实时叠加。
 
-* 调节图片不透明度、背景模糊、暗色遮罩、面板不透明度、对话透明度、对话框透明度和输出内容透明度。
+* 颜色与遮罩：自定义遮罩颜色（与暗色遮罩强度叠加为 rgba），可选的背景底色（用于完整显示/平铺时的留白区域，默认跟随明暗主题）。
 
-* 支持铺满、完整显示、平铺，以及居中、顶部、底部、左侧、右侧对齐。
+* 七档氛围调节：图片不透明度、背景模糊、暗色遮罩、面板不透明度、对话透明度、对话框透明度、输出内容透明度。
+
+* 自定义 CSS：可书写任意 CSS，覆盖背景层或 Harness 界面的任何样式；输入实时预览，保存后随配置持久化；不依赖背景图片，关闭背景开关后仍可生效，关闭开关或卸载插件即整段移除。
 
 * 当前窗口实时预览，点击「保存背景」后持久化，离开设置页会放弃未保存的预览。
 
-* 面板不透明度调节侧边栏等面板；对话透明度调节输入框；对话框透明度调节对话区域（消息气泡与 AI 回复卡片）；输出内容透明度调节代码块和工具结果。
-
-* 跟随 Harness 明暗主题，关闭背景或卸载插件后恢复原样式。
+* 跟随 Harness 明暗主题切换重新采样主题底色；关闭背景或卸载插件后恢复原样式。
 
 已验证版本为 **DeepSeek Harness 0.2.1-rc.2**；包中声明的兼容范围是 `>=0.2.1-rc.2 <0.3.0`，其他版本尚未逐一验证。本地构建需要 Node.js 22 或更新版本及 npm。
 
@@ -36,15 +36,11 @@
 
 先启动过桌面版，再使用 **桌面程序自带的 CLI** 安装到 `desktop` profile：
 
-
-
 ```
 dsh plugin --profile desktop add "github:ProkyHoof/plug-in#path:/deepseek/background"
 ```
 
 这里的 `dsh` 应指向桌面版 CLI。如果命令不可用，或使用 npm 版 CLI 时提示 `desktop` 是保留 profile，可以直接调用桌面安装目录中的入口。Windows 示例，执行前替换安装路径：
-
-
 
 ```
 $dshCli = 'C:\实际安装目录\Deepseek\resources\runtime\cli\bin\dsh.cmd'
@@ -54,8 +50,6 @@ $dshCli = 'C:\实际安装目录\Deepseek\resources\runtime\cli\bin\dsh.cmd'
 安装完成后，完全退出并重新打开 DeepSeek Harness。
 
 ### Web 版
-
-
 
 ```
 npx @deepseek-ai/dsh plugin --profile web add "github:ProkyHoof/plug-in#path:/deepseek/background"
@@ -69,8 +63,6 @@ Harness 的 `plugin` 命令将安装参数转交给 pnpm，子目录语法见 [p
 
 如果当前 CLI 不支持 Git 子目录参数，或者需要修改源码，可以先克隆仓库、构建并打包：
 
-
-
 ```
 git clone https://github.com/ProkyHoof/plug-in.git
 Set-Location plug-in/deepseek/background
@@ -79,12 +71,10 @@ npm run check
 npm pack
 ```
 
-版本 `1.0.0` 会生成 `dsh-background-image-1.0.0.tgz`。在上述插件目录中取得包的绝对路径，再选择对应平台安装：
-
-
+版本 `1.1.0` 会生成 `dsh-background-image-1.1.0.tgz`。在上述插件目录中取得包的绝对路径，再选择对应平台安装：
 
 ```
-$pluginPackage = (Resolve-Path './dsh-background-image-1.0.0.tgz').Path
+$pluginPackage = (Resolve-Path './dsh-background-image-1.1.0.tgz').Path
 
 # 桌面版：使用桌面程序自带的 dsh，或前文的 & $dshCli 调用方式。
 dsh plugin --profile desktop add "$pluginPackage"
@@ -97,11 +87,18 @@ npx @deepseek-ai/dsh plugin --profile web add "$pluginPackage"
 
 ## 使用方法
 
-
-
 1. 打开「背景图片」，点击上传区域或拖入图片；使用链接时，粘贴 HTTPS 图片直链并点击「载入」。
 
-2. 选择显示方式和图片位置，调节七个滑块，观察当前窗口中的效果。
+2. 设置页分六张卡片，所有调整在右侧实时预览：
+
+   | 卡片 | 可调节内容 |
+   | --- | --- |
+   | 01 / 图片来源 | 本地上传、拖入、移除，或载入 HTTPS 直链 |
+   | 02 / 布局 | 铺满 / 完整显示 / 平铺、图片位置、图片缩放（50%–200%） |
+   | 03 / 颜色与遮罩 | 遮罩颜色、背景底色（可跟随主题） |
+   | 04 / 滤镜 | 亮度、对比度、饱和度、灰度、褐化、色相旋转 |
+   | 05 / 氛围 | 图片不透明度、背景模糊、暗色遮罩、面板 / 对话 / 对话框 / 输出内容透明度 |
+   | 06 / 自定义 CSS | 任意 CSS 开关、代码框、字数统计、插入示例 |
 
 3. 点击「保存背景」。设置写入当前 profile，重启后自动恢复。
 
@@ -111,15 +108,68 @@ npx @deepseek-ai/dsh plugin --profile web add "$pluginPackage"
 
 初次安装默认关闭背景，导入图片后自动开启预览。离开设置页前请保存需要保留的修改。多个窗口同时修改时会检查配置修订号；发生冲突后，点击「重新载入」再编辑。
 
+### 参数默认值与范围
 
+| 参数 | 默认值 | 范围 |
+| --- | --- | --- |
+| 图片不透明度 `opacity` | 55% | 0–100 |
+| 背景模糊 `blur` | 0px | 0–30 |
+| 暗色遮罩 `shade` | 15% | 0–80 |
+| 遮罩颜色 `maskColor` | `#000000` | 十六进制 `#rgb` / `#rrggbb` / 8 位 |
+| 图片缩放 `zoom` | 100% | 50–200 |
+| 亮度 `brightness` | 100% | 0–200 |
+| 对比度 `contrast` | 100% | 0–200 |
+| 饱和度 `saturate` | 100% | 0–200 |
+| 灰度 `grayscale` | 0% | 0–100 |
+| 褐化 `sepia` | 0% | 0–100 |
+| 色相旋转 `hueRotate` | 0° | -180–180 |
+| 背景底色 `canvasColor` | 空（跟随主题） | 十六进制，或空 |
+| 面板不透明度 `surfaceOpacity` | 80% | 0–100 |
+| 对话透明度 `conversationOpacity` | 80%（输入框） | 0–100 |
+| 对话框透明度 `dialogOpacity` | 80%（气泡与回复卡片） | 0–100 |
+| 输出内容透明度 `outputOpacity` | 100%（代码块、工具结果） | 0–100 |
+| 自定义 CSS `customCss` | 空 | 最长 10000 个字符 |
 
-![背景图片设置页面](docs/settings-dark.png)
+## 自定义 CSS（任意样式）
+
+「06 / 自定义 CSS」提供一个可写任意 CSS 的代码框，内容在输入时实时预览，保存后随 profile 持久化，重启后仍然生效。
+
+- 自定义 CSS **不依赖背景图片**：即使关闭背景开关，只要「自定义样式」开关开启并保存，样式就会生效。
+
+- 内容只作为 CSS 文本插入独立的 `<style data-dsh-background-custom>` 元素，不执行任何脚本。关闭「自定义样式」开关并保存、或卸载插件，整段样式会被移除，界面恢复原样。
+
+- 若自定义样式导致界面异常无法操作，关闭「自定义样式」开关后保存即可恢复（也可卸载插件恢复）。
+
+### 背景层提供的类名
+
+| 选择器 | 含义 |
+| --- | --- |
+| `.dsh-background-layer` | 背景层容器（固定铺满、`z-index:-1`、不拦截鼠标） |
+| `.dsh-background-picture` | 图片层（承载图片、滤镜与缩放） |
+| `.dsh-background-mask` | 遮罩层（遮罩颜色与暗色遮罩强度合成的颜色） |
+| `body[data-dsh-background-image]` | 背景启用时挂在 body 上的标记 |
+
+### 示例
+
+点击「插入示例」可自动填入；也可自行书写，例如把纯色遮罩换成斜向渐变：
+
+```css
+.dsh-background-mask {
+  background: linear-gradient(135deg, rgba(0,0,0,.5), rgba(0,0,0,0) 60%) !important;
+}
+```
+
+或调整 Harness 自身主题变量（以浏览器开发者工具中查到的实际类名、变量为准）：
+
+```css
+body {
+  --dsw-specific-sidebar-fill: rgba(18, 20, 24, .72) !important;
+}
+```
 
 ## 更新与卸载
 
 从 GitHub 安装的用户，更新时重新执行同一条 `add` 命令，获取默认分支的新内容：
-
-
 
 ```
 # 桌面版，使用桌面 CLI。
@@ -132,8 +182,6 @@ npx @deepseek-ai/dsh plugin --profile web add "github:ProkyHoof/plug-in#path:/de
 本地打包安装的用户，先更新源码、重新构建打包，再安装新包。更新完成后重新启动 Harness。
 
 卸载时使用**包名**：
-
-
 
 ```
 # 桌面版，使用桌面 CLI。
@@ -151,21 +199,19 @@ npx @deepseek-ai/dsh plugin --profile web remove dsh-background-image
 
 本地导入的图片数据保存在当前 profile 的 `cordis.patch.yml`，不依赖原文件路径，也不上传到图床。备份或分享该配置文件时，其中也包含背景图片数据。
 
-HTTPS 图片由显示界面的浏览器或桌面窗口加载，链接需要持续可访问。插件调整背景层及部分面板填充色，正文和按钮的透明度保持原有设置。
+HTTPS 图片由显示界面的浏览器或桌面窗口加载，链接需要持续可访问且必须使用 HTTPS、不得包含账号或密码。插件调整背景层及部分面板填充色，正文和按钮的透明度保持原有设置。
 
 ## 开发与目录
-
-
 
 ```
 background/
 ├── src/                   # 插件源码，使用中文注释
-│   ├── index.js           # Host 配置与持久化声明
+│   ├── index.js           # Host 配置与持久化声明（字段由 config.js 派生）
 │   ├── client.jsx         # 插槽注册、主题与配置订阅
 │   ├── App.jsx            # 中文设置界面与预览
-│   ├── config.js          # 参数校验与背景样式
+│   ├── config.js          # 默认值、取值范围、校验与背景样式
 │   ├── image-import.js    # 图片解码、缩放、压缩与链接检查
-│   ├── renderer.js        # 背景渲染与原样式恢复
+│   ├── renderer.js        # 背景渲染、自定义 CSS 注入与原样式恢复
 │   └── controller.js      # 预览、保存、冲突和错误处理
 ├── scripts/build.mjs      # Host / Client 构建与 ModuleLoader 封装
 ├── tests/                 # 逻辑、生命周期与打包客户端测试
@@ -173,10 +219,8 @@ background/
 ├── docs/                  # 效果截图
 ├── cordis.patch.yml       # 插件 bundle
 ├── package.json           # 包元数据、依赖与兼容范围
-└── VALIDATION.md           # 验证记录
+└── VALIDATION.md          # 验证记录
 ```
-
-
 
 ```
 npm ci
@@ -187,4 +231,13 @@ npm pack        # 构建并生成可分发的 .tgz 包
 
 修改后提交源码、锁文件及 `lib/`，再推送至 GitHub。`node_modules/`、`.reference/` 和 `*.tgz` 已忽略；打包文件可以单独作为 GitHub Release 附件分发。
 
-配置项编号固定为 `background-image`，修改代码时请保留。验证范围见 [VALIDATION.md](VALIDATION.md)，许可证为 [MIT](LICENSE)。
+配置项编号固定为 `background-image`，修改代码时请保留。新增配置项时，需要同时更新 `src/config.js` 的 `DEFAULTS` 与 `RANGES`，`src/index.js` 会自动派生 schema，`tests/host.test.js` 会校验两者完全一致。验证范围见 [VALIDATION.md](VALIDATION.md)，许可证为 [MIT](LICENSE)。
+
+## 变更记录
+
+* **1.1.0**
+  * 新增图片滤镜：亮度、对比度、饱和度、灰度、褐化、色相旋转；新增图片缩放。
+  * 新增遮罩颜色、背景底色与自定义 CSS（任意样式，独立于背景图片生效）。
+  * 修复 Host 持久化 schema 缺少字段导致部分参数重启后回退默认值的问题；schema 字段统一由 `config.js` 派生并加入回归测试。
+  * 设置页重组为六张卡片，补充真实验证与 18 项自动化测试。
+* **1.0.0**：首个版本，支持本地导入、HTTPS 链接、显示方式、透明度与模糊遮罩调节。
