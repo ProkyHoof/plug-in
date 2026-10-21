@@ -15,6 +15,13 @@ test('参数校验防止非法数值或类型进入背景样式', () => {
   assert.equal(validateConfig({ ...DEFAULTS, conversationOpacity: 60 }).conversationOpacity, 60);
 });
 
+test('旧版保存的配置缺少新字段时使用默认值，不报错', () => {
+  const legacy = { enabled: true, image: 'https://example.com/x.png', imageName: 'x', opacity: 50, blur: 2, shade: 10, surfaceOpacity: 70, fit: 'cover', position: 'center' };
+  const config = validateConfig(legacy);
+  assert.equal(config.conversationOpacity, 80);
+  assert.equal(config.surfaceOpacity, 70);
+});
+
 test('图片链接不能逃出 CSS 字符串，平铺和模糊按设置呈现', () => {
   assert.equal(cssUrl('https://x/a"\\b\n'), 'url("https://x/a\\22 \\5c b\\a ")');
   const styles = imageStyles({ ...DEFAULTS, image: 'https://example.com/x.png', fit: 'repeat', blur: 10, opacity: 35 });

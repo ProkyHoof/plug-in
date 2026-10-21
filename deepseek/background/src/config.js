@@ -33,6 +33,7 @@ export function validateConfig(input) {
   if (typeof input.imageName !== 'string' || input.imageName.length > 200) throw new Error('图片名称最多 200 个字符。');
   config.imageName = input.imageName;
   for (const [key, max] of [['opacity', 100], ['blur', 30], ['shade', 80], ['surfaceOpacity', 100], ['conversationOpacity', 100]]) {
+    if (input[key] === undefined) continue; // 旧版本保存的配置缺少新字段时，保留默认值。
     if (!Number.isFinite(input[key]) || input[key] < 0 || input[key] > max) throw new Error(`背景参数 ${key} 超出有效范围。`);
     config[key] = input[key];
   }

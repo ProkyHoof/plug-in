@@ -86,6 +86,7 @@ function validateConfig(input) {
   if (typeof input.imageName !== "string" || input.imageName.length > 200) throw new Error("\u56FE\u7247\u540D\u79F0\u6700\u591A 200 \u4E2A\u5B57\u7B26\u3002");
   config.imageName = input.imageName;
   for (const [key, max] of [["opacity", 100], ["blur", 30], ["shade", 80], ["surfaceOpacity", 100], ["conversationOpacity", 100]]) {
+    if (input[key] === void 0) continue;
     if (!Number.isFinite(input[key]) || input[key] < 0 || input[key] > max) throw new Error(`\u80CC\u666F\u53C2\u6570 ${key} \u8D85\u51FA\u6709\u6548\u8303\u56F4\u3002`);
     config[key] = input[key];
   }
