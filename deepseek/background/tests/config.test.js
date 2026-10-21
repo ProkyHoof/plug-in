@@ -10,8 +10,9 @@ test('拒绝脚本、文件路径、SVG、携带凭据的链接及超量图片',
 
 test('参数校验防止非法数值或类型进入背景样式', () => {
   assert.deepEqual(validateConfig(DEFAULTS), DEFAULTS);
-  for (const input of [{ blur: NaN }, { opacity: 101 }, { shade: -1 }, { enabled: 'true' }, { fit: 'contain;position:fixed' }, { imageName: 'x'.repeat(201) }]) assert.throws(() => validateConfig({ ...DEFAULTS, ...input }));
+  for (const input of [{ blur: NaN }, { opacity: 101 }, { shade: -1 }, { surfaceOpacity: -5 }, { conversationOpacity: 101 }, { enabled: 'true' }, { fit: 'contain;position:fixed' }, { imageName: 'x'.repeat(201) }]) assert.throws(() => validateConfig({ ...DEFAULTS, ...input }));
   assert.equal(validateConfig({ ...DEFAULTS, foreign: 'discarded' }).foreign, undefined);
+  assert.equal(validateConfig({ ...DEFAULTS, conversationOpacity: 60 }).conversationOpacity, 60);
 });
 
 test('图片链接不能逃出 CSS 字符串，平铺和模糊按设置呈现', () => {

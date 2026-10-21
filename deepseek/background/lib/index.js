@@ -12,6 +12,7 @@ var DEFAULTS = Object.freeze({
   blur: 0,
   shade: 15,
   surfaceOpacity: 80,
+  conversationOpacity: 80,
   fit: "cover",
   position: "center"
 });

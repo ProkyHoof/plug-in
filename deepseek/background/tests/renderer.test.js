@@ -11,13 +11,15 @@ test('关闭和卸载恢复原样式；保留宿主和其他插件的样式', ()
   const originalCss = document.body.style.cssText;
   const renderer = new BackgroundRenderer(document);
   assert.equal(renderer.layer.hidden, true);
-  renderer.apply({ ...DEFAULTS, image: 'https://example.com/test.png', enabled: true, opacity: 42 });
+  renderer.apply({ ...DEFAULTS, image: 'https://example.com/test.png', enabled: true, opacity: 42, conversationOpacity: 42 });
   assert.equal(document.body.hasAttribute('data-dsh-background-image'), true);
   assert.equal(renderer.picture.style.opacity, '0.42');
+  assert.equal(document.body.style.getPropertyValue('--dsh-bg-conversation'), '42%');
   assert.equal(document.querySelector('main').style.opacity, '');
   renderer.apply({ ...DEFAULTS });
   assert.equal(document.body.hasAttribute('data-dsh-background-image'), false);
   assert.equal(document.body.style.getPropertyValue('--dsh-bg-canvas'), 'hotpink');
+  assert.equal(document.body.style.getPropertyValue('--dsh-bg-conversation'), '');
   renderer.dispose();
   assert.equal(document.querySelector('.dsh-background-layer'), null);
   assert.equal(document.body.style.getPropertyValue('--unrelated'), '123');

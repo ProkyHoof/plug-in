@@ -4,15 +4,25 @@
 
 从左侧「背景图片」进入，也可以在「设置 → 通用」点击「设置背景」。
 
+
+
 ![Harness 会话页背景效果，使用抽象测试图](docs/chat-preview.png)
 
 ## 功能与兼容性
 
-- 点击或拖入 PNG、JPEG、WebP、AVIF、GIF 图片，也可载入 HTTPS 图片直链。
-- 调节图片不透明度、背景模糊、暗色遮罩和面板不透明度。
-- 支持铺满、完整显示、平铺，以及居中、顶部、底部、左侧、右侧对齐。
-- 当前窗口实时预览，点击「保存背景」后持久化，离开设置页会放弃未保存的预览。
-- 跟随 Harness 明暗主题，关闭背景或卸载插件后恢复原样式。
+
+
+* 点击或拖入 PNG、JPEG、WebP、AVIF、GIF 图片，也可载入 HTTPS 图片直链。
+
+* 调节图片不透明度、背景模糊、暗色遮罩、面板不透明度和对话透明度。
+
+* 支持铺满、完整显示、平铺，以及居中、顶部、底部、左侧、右侧对齐。
+
+* 当前窗口实时预览，点击「保存背景」后持久化，离开设置页会放弃未保存的预览。
+
+* 面板不透明度调节侧边栏等面板；对话透明度单独调节消息气泡和输入框。
+
+* 跟随 Harness 明暗主题，关闭背景或卸载插件后恢复原样式。
 
 已验证版本为 **DeepSeek Harness 0.2.1-rc.2**；包中声明的兼容范围是 `>=0.2.1-rc.2 <0.3.0`，其他版本尚未逐一验证。本地构建需要 Node.js 22 或更新版本及 npm。
 
@@ -26,13 +36,17 @@
 
 先启动过桌面版，再使用 **桌面程序自带的 CLI** 安装到 `desktop` profile：
 
-```powershell
+
+
+```
 dsh plugin --profile desktop add "github:ProkyHoof/plug-in#path:/deepseek/background"
 ```
 
 这里的 `dsh` 应指向桌面版 CLI。如果命令不可用，或使用 npm 版 CLI 时提示 `desktop` 是保留 profile，可以直接调用桌面安装目录中的入口。Windows 示例，执行前替换安装路径：
 
-```powershell
+
+
+```
 $dshCli = 'C:\实际安装目录\Deepseek\resources\runtime\cli\bin\dsh.cmd'
 & $dshCli plugin --profile desktop add "github:ProkyHoof/plug-in#path:/deepseek/background"
 ```
@@ -41,7 +55,9 @@ $dshCli = 'C:\实际安装目录\Deepseek\resources\runtime\cli\bin\dsh.cmd'
 
 ### Web 版
 
-```powershell
+
+
+```
 npx @deepseek-ai/dsh plugin --profile web add "github:ProkyHoof/plug-in#path:/deepseek/background"
 ```
 
@@ -53,7 +69,9 @@ Harness 的 `plugin` 命令将安装参数转交给 pnpm，子目录语法见 [p
 
 如果当前 CLI 不支持 Git 子目录参数，或者需要修改源码，可以先克隆仓库、构建并打包：
 
-```powershell
+
+
+```
 git clone https://github.com/ProkyHoof/plug-in.git
 Set-Location plug-in/deepseek/background
 npm ci
@@ -63,7 +81,9 @@ npm pack
 
 版本 `1.0.0` 会生成 `dsh-background-image-1.0.0.tgz`。在上述插件目录中取得包的绝对路径，再选择对应平台安装：
 
-```powershell
+
+
+```
 $pluginPackage = (Resolve-Path './dsh-background-image-1.0.0.tgz').Path
 
 # 桌面版：使用桌面程序自带的 dsh，或前文的 & $dshCli 调用方式。
@@ -77,13 +97,21 @@ npx @deepseek-ai/dsh plugin --profile web add "$pluginPackage"
 
 ## 使用方法
 
+
+
 1. 打开「背景图片」，点击上传区域或拖入图片；使用链接时，粘贴 HTTPS 图片直链并点击「载入」。
-2. 选择显示方式和图片位置，调节四个滑块，观察当前窗口中的效果。
+
+2. 选择显示方式和图片位置，调节五个滑块，观察当前窗口中的效果。
+
 3. 点击「保存背景」。设置写入当前 profile，重启后自动恢复。
+
 4. 暂时关闭背景时，关闭右上角开关并保存；移除图片后也需要保存。
+
 5. 「重置参数」保留图片并恢复默认显示参数；「重新载入」放弃当前预览，读取已保存设置。
 
 初次安装默认关闭背景，导入图片后自动开启预览。离开设置页前请保存需要保留的修改。多个窗口同时修改时会检查配置修订号；发生冲突后，点击「重新载入」再编辑。
+
+
 
 ![背景图片设置页面](docs/settings-dark.png)
 
@@ -91,7 +119,9 @@ npx @deepseek-ai/dsh plugin --profile web add "$pluginPackage"
 
 从 GitHub 安装的用户，更新时重新执行同一条 `add` 命令，获取默认分支的新内容：
 
-```powershell
+
+
+```
 # 桌面版，使用桌面 CLI。
 dsh plugin --profile desktop add "github:ProkyHoof/plug-in#path:/deepseek/background"
 
@@ -103,7 +133,9 @@ npx @deepseek-ai/dsh plugin --profile web add "github:ProkyHoof/plug-in#path:/de
 
 卸载时使用**包名**：
 
-```powershell
+
+
+```
 # 桌面版，使用桌面 CLI。
 dsh plugin --profile desktop remove dsh-background-image
 
@@ -123,7 +155,9 @@ HTTPS 图片由显示界面的浏览器或桌面窗口加载，链接需要持�
 
 ## 开发与目录
 
-```text
+
+
+```
 background/
 ├── src/                   # 插件源码，使用中文注释
 │   ├── index.js           # Host 配置与持久化声明
@@ -142,7 +176,9 @@ background/
 └── VALIDATION.md           # 验证记录
 ```
 
-```powershell
+
+
+```
 npm ci
 npm run build   # 构建 lib/
 npm run check   # 重新构建并运行测试

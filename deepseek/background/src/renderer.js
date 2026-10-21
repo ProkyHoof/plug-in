@@ -1,7 +1,7 @@
 import { imageStyles, validateConfig } from './config.js';
 
 const ATTRIBUTE = 'data-dsh-background-image';
-const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-surface'];
+const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-surface', '--dsh-bg-conversation'];
 
 export class BackgroundRenderer {
   constructor(document) {
@@ -41,6 +41,7 @@ export class BackgroundRenderer {
     Object.assign(this.picture.style, imageStyles(config));
     this.mask.style.backgroundColor = `rgba(0, 0, 0, ${config.shade / 100})`;
     this.body.style.setProperty('--dsh-bg-surface', `${config.surfaceOpacity}%`);
+    this.body.style.setProperty('--dsh-bg-conversation', `${config.conversationOpacity}%`);
     this.layer.hidden = false;
     this.body.setAttribute(ATTRIBUTE, '');
     this.active = true;
