@@ -1,0 +1,4 @@
+# 单独保存背景设置，不覆盖 Harness 原有的主题和其他插件。
+- insert:
+    - id: background-image
+      name: dsh-background-image
