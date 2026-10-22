@@ -2,7 +2,9 @@ export const PACKAGE = 'dsh-background-image';
 export const NAMESPACE = 'background-image';
 export const MAX_IMAGE_BYTES = 360 * 1024;
 export const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
-export const MAX_CUSTOM_CSS = 10000;
+
+// 渐变遮罩的可选方向。
+export const GRADIENTS = Object.freeze(['none', 'bottom', 'top', 'both']);
 
 export const DEFAULTS = Object.freeze({
   enabled: false,
@@ -12,6 +14,7 @@ export const DEFAULTS = Object.freeze({
   opacity: 55,
   blur: 0,
   shade: 15,
+  gradient: 'none',
   maskColor: '#000000',
   zoom: 100,
   // 图片滤镜
@@ -23,17 +26,15 @@ export const DEFAULTS = Object.freeze({
   hueRotate: 0,
   // 图片后方的底色，空字符串表示跟随宿主主题
   canvasColor: '',
-  // 前景面板透明度
-  surfaceOpacity: 80,
-  conversationOpacity: 80,
-  dialogOpacity: 80,
-  outputOpacity: 100,
+  // 界面各表面透明度
+  surfaceOpacity: 80,    // 侧边栏
+  titlebarOpacity: 100,  // 顶部标题栏
+  popoverOpacity: 100,   // 弹层、菜单、设置卡片
+  conversationOpacity: 80, // 底部文本输入框
+  dialogOpacity: 80,     // 对话气泡、代码块与工具结果卡片
   // 布局
   fit: 'cover',
   position: 'center',
-  // 高级自定义样式
-  customCssEnabled: false,
-  customCss: '',
 });
 
 // 数值参数的允许范围：最小值、最大值。Host schema 与校验逻辑共用，避免两处不一致。
@@ -49,9 +50,10 @@ export const RANGES = Object.freeze({
   sepia: [0, 100],
   hueRotate: [-180, 180],
   surfaceOpacity: [0, 100],
+  titlebarOpacity: [0, 100],
+  popoverOpacity: [0, 100],
   conversationOpacity: [0, 100],
   dialogOpacity: [0, 100],
-  outputOpacity: [0, 100],
 });
 
 const HEX_COLOR = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
@@ -114,18 +116,13 @@ export function validateConfig(input) {
   }
   if (input.maskColor !== undefined) config.maskColor = normalizeColor(input.maskColor);
   if (input.canvasColor !== undefined) config.canvasColor = normalizeColor(input.canvasColor, { allowEmpty: true });
-  if (input.customCssEnabled !== undefined) {
-    if (typeof input.customCssEnabled !== 'boolean') throw new Error('自定义 CSS 开关状态无效。');
-    config.customCssEnabled = input.customCssEnabled;
-  }
-  if (input.customCss !== undefined) {
-    if (typeof input.customCss !== 'string' || input.customCss.length > MAX_CUSTOM_CSS) throw new Error(`自定义 CSS 内容无效，或长度超过 ${MAX_CUSTOM_CSS} 个字符。`);
-    config.customCss = input.customCss;
-  }
   if (!['cover', 'contain', 'repeat'].includes(input.fit)) throw new Error('图片显示方式无效。');
   if (!['center', 'top', 'bottom', 'left', 'right'].includes(input.position)) throw new Error('图片位置无效。');
+  const gradient = input.gradient === undefined ? DEFAULTS.gradient : input.gradient;
+  if (!GRADIENTS.includes(gradient)) throw new Error('渐变遮罩方向无效。');
   config.fit = input.fit;
   config.position = input.position;
+  config.gradient = gradient;
   return config;
 }
 
@@ -156,4 +153,18 @@ export function imageStyles(value) {
     filter,
     transform: scale !== 1 ? `scale(${Number(scale.toFixed(4))})` : 'none',
   };
+}
+
+// 遮罩层样式：纯色或朝向边缘的渐变，用于压低亮部、保证文字可读性。
+export function maskStyles(value) {
+  const config = validateConfig(value);
+  const solid = hexToRgba(config.maskColor, config.shade / 100);
+  if (config.gradient === 'none') return { backgroundColor: solid, backgroundImage: 'none' };
+  const clear = hexToRgba(config.maskColor, 0);
+  const bottom = `linear-gradient(to top, ${solid} 0%, ${solid} 18%, ${clear} 58%)`;
+  const top = `linear-gradient(to bottom, ${solid} 0%, ${solid} 18%, ${clear} 58%)`;
+  const layers = config.gradient === 'bottom' ? bottom
+    : config.gradient === 'top' ? top
+      : `${bottom}, ${top}`;
+  return { backgroundColor: 'transparent', backgroundImage: layers };
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULTS, MAX_CUSTOM_CSS, RANGES, validateConfig, normalizeImage, normalizeColor, hexToRgba, cssUrl, imageStyles, MAX_IMAGE_BYTES } from '../src/config.js';
+import { DEFAULTS, RANGES, validateConfig, normalizeImage, normalizeColor, hexToRgba, cssUrl, imageStyles, maskStyles, MAX_IMAGE_BYTES } from '../src/config.js';
 
 test('拒绝脚本、文件路径、SVG、携带凭据的链接及超量图片', () => {
   for (const source of ['javascript:alert(1)', 'file:///C:/x.png', 'http://example.com/x.png', 'https://user:pass@example.com/x.png', 'data:image/svg+xml;base64,PHN2Zz4=', 'blob:https://example.com/123']) assert.throws(() => normalizeImage(source));
@@ -10,17 +10,20 @@ test('拒绝脚本、文件路径、SVG、携带凭据的链接及超量图片',
 
 test('参数校验防止非法数值或类型进入背景样式', () => {
   assert.deepEqual(validateConfig(DEFAULTS), DEFAULTS);
-  for (const input of [{ blur: NaN }, { opacity: 101 }, { shade: -1 }, { surfaceOpacity: -5 }, { conversationOpacity: 101 }, { dialogOpacity: 101 }, { outputOpacity: -1 }, { zoom: 49 }, { zoom: 201 }, { hueRotate: -181 }, { brightness: -1 }, { saturate: 201 }, { enabled: 'true' }, { fit: 'contain;position:fixed' }, { imageName: 'x'.repeat(201) }, { maskColor: 'red' }, { maskColor: 'rgb(1,2,3)' }, { canvasColor: '#xyz' }, { customCssEnabled: 'yes' }, { customCss: 'x'.repeat(MAX_CUSTOM_CSS + 1) }]) assert.throws(() => validateConfig({ ...DEFAULTS, ...input }));
+  for (const input of [{ blur: NaN }, { opacity: 101 }, { shade: -1 }, { surfaceOpacity: -5 }, { conversationOpacity: 101 }, { dialogOpacity: 101 }, { titlebarOpacity: -1 }, { popoverOpacity: 101 }, { zoom: 49 }, { zoom: 201 }, { hueRotate: -181 }, { brightness: -1 }, { saturate: 201 }, { enabled: 'true' }, { fit: 'contain;position:fixed' }, { gradient: 'sideways' }, { imageName: 'x'.repeat(201) }, { maskColor: 'red' }, { maskColor: 'rgb(1,2,3)' }, { canvasColor: '#xyz' }]) assert.throws(() => validateConfig({ ...DEFAULTS, ...input }));
   assert.equal(validateConfig({ ...DEFAULTS, foreign: 'discarded' }).foreign, undefined);
   assert.equal(validateConfig({ ...DEFAULTS, conversationOpacity: 60 }).conversationOpacity, 60);
 });
 
-test('旧版保存的配置缺少新字段时使用默认值，不报错', () => {
-  const legacy = { enabled: true, image: 'https://example.com/x.png', imageName: 'x', opacity: 50, blur: 2, shade: 10, surfaceOpacity: 70, fit: 'cover', position: 'center' };
+test('旧版保存的配置缺少新字段时使用默认值，不报错；废弃字段被忽略', () => {
+  // 1.1.x 配置中包含已合并的 outputOpacity 和已移除的自定义 CSS 字段。
+  const legacy = { enabled: true, image: 'https://example.com/x.png', imageName: 'x', opacity: 50, blur: 2, shade: 10, surfaceOpacity: 70, fit: 'cover', position: 'center', outputOpacity: 100, customCssEnabled: true, customCss: 'body{color:red}' };
   const config = validateConfig(legacy);
   assert.equal(config.conversationOpacity, 80);
   assert.equal(config.dialogOpacity, 80);
-  assert.equal(config.outputOpacity, 100);
+  assert.equal(config.titlebarOpacity, 100);
+  assert.equal(config.popoverOpacity, 100);
+  assert.equal(config.gradient, 'none');
   assert.equal(config.surfaceOpacity, 70);
   assert.equal(config.maskColor, '#000000');
   assert.equal(config.zoom, 100);
@@ -31,8 +34,9 @@ test('旧版保存的配置缺少新字段时使用默认值，不报错', () =>
   assert.equal(config.sepia, 0);
   assert.equal(config.hueRotate, 0);
   assert.equal(config.canvasColor, '');
-  assert.equal(config.customCssEnabled, false);
-  assert.equal(config.customCss, '');
+  assert.equal('outputOpacity' in config, false);
+  assert.equal('customCss' in config, false);
+  assert.equal('customCssEnabled' in config, false);
 });
 
 test('颜色只接受十六进制，遮罩颜色按透明度合成 rgba', () => {
@@ -48,10 +52,10 @@ test('颜色只接受十六进制，遮罩颜色按透明度合成 rgba', () => 
   assert.equal(hexToRgba('#00000080', 0.5), 'rgba(0, 0, 0, 0.251)');
 });
 
-test('自定义 CSS 可在没有背景图片时独立启用', () => {
-  const config = validateConfig({ ...DEFAULTS, enabled: false, image: '', customCssEnabled: true, customCss: 'body{color:red}' });
-  assert.equal(config.customCssEnabled, true);
-  assert.equal(config.customCss, 'body{color:red}');
+test('渐变遮罩只接受合法方向，纯色为默认行为', () => {
+  assert.equal(validateConfig({ ...DEFAULTS, gradient: 'bottom' }).gradient, 'bottom');
+  assert.equal(maskStyles({ ...DEFAULTS, shade: 0, gradient: 'both' }).backgroundImage.includes('rgba(0, 0, 0, 0)'), true);
+  assert.equal(maskStyles({ ...DEFAULTS, shade: 20, gradient: 'none' }).backgroundColor, 'rgba(0, 0, 0, 0.2)');
 });
 
 test('图片链接不能逃出 CSS 字符串，平铺、滤镜与缩放按设置呈现', () => {

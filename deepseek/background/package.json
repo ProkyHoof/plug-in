@@ -1,7 +1,7 @@
 {
   "name": "dsh-background-image",
-  "version": "1.1.1",
-  "description": "DeepSeek Harness 背景图片插件：本地导入、图片链接、滤镜、缩放、遮罩颜色、透明度调节与任意自定义 CSS",
+  "version": "1.2.0",
+  "description": "DeepSeek Harness 鑳屾櫙鍥剧墖鎻掍欢锛氭湰鍦板鍏ャ€佸浘鐗囬摼鎺ャ€佹护闀溿€佺缉鏀俱€侀伄缃╅鑹层€侀€忔槑搴﹁皟鑺備笌浠绘剰鑷畾涔?CSS",
   "type": "module",
   "license": "MIT",
   "main": "lib/index.js",

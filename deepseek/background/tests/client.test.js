@@ -37,6 +37,8 @@ test('实际 Client 包完成注册、调节、保存和资源清理', async () 
   const root = createRoot(document.getElementById('root'));
   const main = slots.get('main'); const controller = main.options.inject().controller;
   const button = label => [...document.querySelectorAll('button')].find(item => item.textContent === label);
+  const slider = label => document.querySelector(`input[type=range][aria-label="${label}"]`);
+  const setRange = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set;
   try {
     await act(async () => { await controller.load(); root.render(React.createElement(main.component, { controller })); });
     assert.equal(document.body.hasAttribute('data-dsh-background-image'), true);
@@ -51,27 +53,29 @@ test('实际 Client 包完成注册、调节、保存和资源清理', async () 
     await act(async () => button('重新载入').click());
     assert.equal(document.body.hasAttribute('data-dsh-background-image'), true);
     // 滤镜滑块经 UI 调整后可保存。
-    const setRange = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set;
-    const brightness = document.querySelector('input[type=range][aria-label="亮度"]');
+    const brightness = slider('亮度');
     await act(async () => { setRange.call(brightness, '130'); brightness.dispatchEvent(new dom.window.Event('input', { bubbles: true })); });
     await act(async () => button('保存背景').click());
     assert.equal(data.value.brightness, 130);
     assert.match(document.querySelector('.dsh-background-picture').style.filter, /brightness\(130%\)/);
-    // 自定义 CSS：开关、实时注入、保存、停用清理。
-    assert.equal(document.querySelector('style[data-dsh-background-custom]'), null);
-    const cssSwitch = document.querySelector('[aria-label="启用自定义 CSS"]');
-    await act(async () => cssSwitch.click());
-    const cssEditor = document.querySelector('textarea[aria-label="自定义 CSS 代码"]');
-    assert.equal(cssEditor.disabled, false);
-    const setTextarea = Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value').set;
-    const sampleCss = '.dsh-background-picture{filter:none!important}';
-    await act(async () => { setTextarea.call(cssEditor, sampleCss); cssEditor.dispatchEvent(new dom.window.Event('input', { bubbles: true })); });
-    assert.ok(document.querySelector('style[data-dsh-background-custom]').textContent.includes('filter:none'));
+    // 渐变遮罩：选择“底部加深”后遮罩层出现底部渐变并保存。
+    assert.equal(document.querySelector('.dsh-background-mask').style.backgroundImage, 'none');
+    await act(async () => button('底部加深').click());
+    assert.match(document.querySelector('.dsh-background-mask').style.backgroundImage, /to top/);
     await act(async () => button('保存背景').click());
-    assert.equal(data.value.customCssEnabled, true);
-    assert.equal(data.value.customCss, sampleCss);
-    await act(async () => cssSwitch.click());
-    assert.equal(document.querySelector('style[data-dsh-background-custom]'), null);
+    assert.equal(data.value.gradient, 'bottom');
+    // 界面透明度滑块：标题栏、文本框、对话框分别写入对应参数。
+    const setSlider = async (label, next) => { const el = slider(label); await act(async () => { setRange.call(el, String(next)); el.dispatchEvent(new dom.window.Event('input', { bubbles: true })); }); };
+    await setSlider('标题栏透明度', 45);
+    await setSlider('文本框透明度', 35);
+    await setSlider('对话框透明度', 25);
+    await act(async () => button('保存背景').click());
+    assert.equal(data.value.titlebarOpacity, 45);
+    assert.equal(data.value.conversationOpacity, 35);
+    assert.equal(data.value.dialogOpacity, 25);
+    // 旧的自定义 CSS 能力已移除，界面不再出现自定义样式开关。
+    assert.equal(document.querySelector('[aria-label="启用自定义 CSS"]'), null);
+    assert.equal(document.querySelector('textarea[aria-label="自定义 CSS 代码"]'), null);
   } finally {
     await act(async () => root.unmount());
     effects.reverse().forEach(dispose => dispose?.());

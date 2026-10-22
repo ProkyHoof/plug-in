@@ -1,5 +1,5 @@
 import z from '@deepseek-ai/schemastery';
-import { DEFAULTS, MAX_CUSTOM_CSS, RANGES } from './config.js';
+import { DEFAULTS, GRADIENTS, RANGES } from './config.js';
 
 export const name = 'background-image';
 // 对象级 volatile 保证图片与显示参数一起保存，并在重启后恢复。
@@ -14,6 +14,7 @@ export const Config = z.object({
     opacity: numberField('opacity'),
     blur: numberField('blur'),
     shade: numberField('shade'),
+    gradient: z.union(GRADIENTS).default(DEFAULTS.gradient),
     maskColor: z.string().default(DEFAULTS.maskColor),
     zoom: numberField('zoom'),
     brightness: numberField('brightness'),
@@ -24,13 +25,12 @@ export const Config = z.object({
     hueRotate: numberField('hueRotate'),
     canvasColor: z.string().default(DEFAULTS.canvasColor),
     surfaceOpacity: numberField('surfaceOpacity'),
+    titlebarOpacity: numberField('titlebarOpacity'),
+    popoverOpacity: numberField('popoverOpacity'),
     conversationOpacity: numberField('conversationOpacity'),
     dialogOpacity: numberField('dialogOpacity'),
-    outputOpacity: numberField('outputOpacity'),
     fit: z.union(['cover', 'contain', 'repeat']).default(DEFAULTS.fit),
     position: z.union(['center', 'top', 'bottom', 'left', 'right']).default(DEFAULTS.position),
-    customCssEnabled: z.boolean().default(DEFAULTS.customCssEnabled),
-    customCss: z.string().max(MAX_CUSTOM_CSS).default(DEFAULTS.customCss),
   }).default({ ...DEFAULTS }).volatile(),
 });
 

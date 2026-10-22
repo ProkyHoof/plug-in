@@ -1,8 +1,7 @@
-import { hexToRgba, imageStyles, validateConfig } from './config.js';
+import { imageStyles, maskStyles, validateConfig } from './config.js';
 
 const ATTRIBUTE = 'data-dsh-background-image';
-const CUSTOM_ATTRIBUTE = 'data-dsh-background-custom';
-const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-bubble-highlight', '--dsh-bg-dialog-surface', '--dsh-bg-code', '--dsh-bg-code-banner', '--dsh-bg-surface', '--dsh-bg-conversation', '--dsh-bg-dialog', '--dsh-bg-output'];
+const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-bubble-highlight', '--dsh-bg-dialog-surface', '--dsh-bg-code', '--dsh-bg-code-banner', '--dsh-bg-menu', '--dsh-bg-surface', '--dsh-bg-titlebar', '--dsh-bg-popover', '--dsh-bg-conversation', '--dsh-bg-dialog'];
 
 export class BackgroundRenderer {
   constructor(document) {
@@ -19,10 +18,6 @@ export class BackgroundRenderer {
     this.mask.className = 'dsh-background-mask';
     this.layer.append(this.picture, this.mask);
     this.body.prepend(this.layer);
-    // 用户自定义 CSS 单独放入一个 style 元素，关闭或卸载时整段移除。
-    this.customStyle = document.createElement('style');
-    this.customStyle.dataset.dshPlugin = 'background-image';
-    this.customStyle.setAttribute(CUSTOM_ATTRIBUTE, '');
     this.active = false;
     this.disposed = false;
   }
@@ -40,34 +35,26 @@ export class BackgroundRenderer {
     this.body.style.setProperty('--dsh-bg-dialog-surface', styles.getPropertyValue('--dsw-alias-bg-layer-1').trim() || (dark ? '#26262b' : '#ffffff'));
     this.body.style.setProperty('--dsh-bg-code', styles.getPropertyValue('--dsw-alias-markdown-code-block').trim() || (dark ? '#232327' : '#f6f8fa'));
     this.body.style.setProperty('--dsh-bg-code-banner', styles.getPropertyValue('--dsw-alias-markdown-code-block-banner').trim() || (dark ? '#2b2b2f' : '#eceff3'));
-  }
-
-  applyCustomCss(config) {
-    const css = config.customCssEnabled ? config.customCss.trim() : '';
-    this.customStyle.textContent = css;
-    if (css && !this.customStyle.parentNode) this.document.head.append(this.customStyle);
-    if (!css && this.customStyle.parentNode) this.customStyle.remove();
+    this.body.style.setProperty('--dsh-bg-menu', styles.getPropertyValue('--dsw-specific-menu').trim() || (dark ? '#43454a73' : '#f8f9fa94'));
   }
 
   apply(raw) {
     if (this.disposed) return;
     const config = validateConfig(raw);
     if (!config.enabled || !config.image) {
-      // 自定义 CSS 独立于背景图片：即使没有开启背景，用户样式仍应生效。
       this.hide();
-      this.applyCustomCss(config);
       return;
     }
     this.captureTheme();
     // 自定义底色优先于主题采样色，用于完整显示/平铺时的留白区域。
     if (config.canvasColor) this.body.style.setProperty('--dsh-bg-canvas', config.canvasColor);
     Object.assign(this.picture.style, imageStyles(config));
-    this.mask.style.backgroundColor = hexToRgba(config.maskColor, config.shade / 100);
+    Object.assign(this.mask.style, maskStyles(config));
     this.body.style.setProperty('--dsh-bg-surface', `${config.surfaceOpacity}%`);
+    this.body.style.setProperty('--dsh-bg-titlebar', `${config.titlebarOpacity}%`);
+    this.body.style.setProperty('--dsh-bg-popover', `${config.popoverOpacity}%`);
     this.body.style.setProperty('--dsh-bg-conversation', `${config.conversationOpacity}%`);
     this.body.style.setProperty('--dsh-bg-dialog', `${config.dialogOpacity}%`);
-    this.body.style.setProperty('--dsh-bg-output', `${config.outputOpacity}%`);
-    this.applyCustomCss(config);
     this.layer.hidden = false;
     this.body.setAttribute(ATTRIBUTE, '');
     this.active = true;
@@ -78,8 +65,7 @@ export class BackgroundRenderer {
     this.layer.hidden = true;
     this.picture.style.backgroundImage = 'none';
     this.mask.style.backgroundColor = '';
-    this.customStyle.textContent = '';
-    this.customStyle.remove();
+    this.mask.style.backgroundImage = '';
     this.restoreVariables();
     this.active = false;
   }
@@ -92,6 +78,6 @@ export class BackgroundRenderer {
   }
 
   dispose() {
-    this.hide(); this.layer.remove(); this.customStyle.remove(); this.disposed = true;
+    this.hide(); this.layer.remove(); this.disposed = true;
   }
 }

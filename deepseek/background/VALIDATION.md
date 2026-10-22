@@ -53,7 +53,7 @@
   - 重启服务后刷新，图片、滤镜、遮罩、底色与自定义 CSS 全部自动恢复，确认 schema 修复生效；
   - 背景层 `z-index:-1`、`pointer-events:none`，中心区域命中的是输入控件而非背景层，鼠标交互不受影响；
   - 关闭背景开关后背景层隐藏、宿主样式恢复，关闭自定义 CSS 开关后对应 style 元素立即移除，重新开启并保存均正常；
-  - 切换深色主题后设置页与背景底色正常，更新了 `docs/settings-dark.png` 与 `docs/chat-preview.png`。
+  - 切换深色主题后设置页与背景底色正常，更新了设置页截图（现为 `docs/settings.png`）与 `docs/chat-preview.png`。
 
 截图使用程序生成的抽象测试图，不包含用户私人图片。
 
@@ -65,3 +65,14 @@
 - 定位到宿主规则：Windows 自定义标题栏下 `[data-windows-titlebar] .BynINW_frame { background: var(--dsw-specific-sidebar-fill); }` 与 `.BynINW_centerCol { background: var(--dsw-alias-bg-base); }`；插件只把后者用到的 `--dsw-alias-bg-base` 改为透明，frame 仍为不透明侧边栏填充色，盖住整个中间区域。Web 模板无 `data-windows-titlebar` 标记，因此之前的 Web 验证未暴露此问题。
 - 修复：新增 `html[data-windows-titlebar] body[data-dsh-background-image] .BynINW_frame { background: transparent !important; }`。侧边栏列 `.BynINW_sidebarCol` 与标题栏条 `.BynINW_frame::before` 各自独立绘制填充，窗口控件与侧边栏外观不受影响；macOS 宿主的 frame 本身透明，规则不产生作用。
 - 在运行中的真实桌面端注入修复样式确认：会话页背景图完整显示，侧边栏与标题栏保持原填充；新增样式表回归测试，`npm run check` 19 项全部通过。
+
+## 追加记录：1.2.0 设置模块重构（参数合并 / 移除自定义 CSS / 新增模块）
+
+日期：2026-10-22。按用户要求重构设置模型：
+
+- 用 CDP 枚举桌面端（Electron 44.7 / Chrome 152）宿主 402 个 `--dsw-*` 变量，确定可手动控制的表面：`--dsw-specific-menu` 与 `--dsw-menu-surface-fill`（菜单/弹层，浅色值 `#f8f9fa94` 且自带 `blur(40px) saturate(150%)` 背景模糊）、`--dsw-alias-bg-layer-1/2/3`（浮层、提示、历史、设置卡片）、`--dsw-alias-settings-card-fill`（设置卡片）、标题栏条 `.BynINW_frame::before`（Windows 下使用侧边栏填充）。
+- 合并透明度：删除 `outputOpacity`，对话框透明度 `dialogOpacity` 同时驱动气泡（`--dsw-specific-bubble`/`-highlight`）、浮层表面（`--dsw-alias-bg-layer-1`）与代码块（`--dsw-alias-markdown-code-block`/`-banner`）；`conversationOpacity` 保留字段名以兼容已保存配置，UI 更名为「文本框透明度」。
+- 新增手动参数：`titlebarOpacity`（标题栏条，0–100，默认 100）、`popoverOpacity`（菜单与弹层卡片，0–100，默认 100，菜单自带背景模糊，调低后仍可读）、`gradient`（渐变遮罩：`none`/`bottom`/`top`/`both`，与遮罩颜色、暗色遮罩强度叠加）。
+- 移除自定义 CSS：删除 `customCssEnabled`/`customCss` 字段、注入逻辑、设置卡片与测试；旧配置中的废弃字段被校验逻辑忽略，旧版缺少 `gradient` 等新字段时回退默认值。
+- 测试：重写 renderer/config/client 测试，覆盖渐变遮罩样式、五档透明度变量、废弃字段迁移与新 UI 交互；`npm run check` 19 项全部通过。
+- 真机验证：桌面端重装 1.2.0 后，通过 CDP 在真实运行的界面逐项调整：标题栏 / 弹层菜单 / 文本框 / 对话框滑块写入正确（`--dsh-bg-titlebar/popover/conversation/dialog` 与宿主 `--dsw-*` color-mix 即时生效），底部渐变遮罩输出为 `linear-gradient`；模型下拉菜单在弹层 30% 时保持毛玻璃且可读；旧 `--dsh-bg-output` 变量与 `style[data-dsh-background-custom]` 均不存在；设置页全量截图更新为 `docs/settings.png`（使用程序生成的抽象测试图，不含用户私人图片）。

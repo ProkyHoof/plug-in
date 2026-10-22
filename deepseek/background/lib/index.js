@@ -4,7 +4,7 @@ import z from "@deepseek-ai/schemastery";
 // src/config.js
 var MAX_IMAGE_BYTES = 360 * 1024;
 var MAX_SOURCE_BYTES = 20 * 1024 * 1024;
-var MAX_CUSTOM_CSS = 1e4;
+var GRADIENTS = Object.freeze(["none", "bottom", "top", "both"]);
 var DEFAULTS = Object.freeze({
   enabled: false,
   image: "",
@@ -13,6 +13,7 @@ var DEFAULTS = Object.freeze({
   opacity: 55,
   blur: 0,
   shade: 15,
+  gradient: "none",
   maskColor: "#000000",
   zoom: 100,
   // 图片滤镜
@@ -24,17 +25,20 @@ var DEFAULTS = Object.freeze({
   hueRotate: 0,
   // 图片后方的底色，空字符串表示跟随宿主主题
   canvasColor: "",
-  // 前景面板透明度
+  // 界面各表面透明度
   surfaceOpacity: 80,
+  // 侧边栏
+  titlebarOpacity: 100,
+  // 顶部标题栏
+  popoverOpacity: 100,
+  // 弹层、菜单、设置卡片
   conversationOpacity: 80,
+  // 底部文本输入框
   dialogOpacity: 80,
-  outputOpacity: 100,
+  // 对话气泡、代码块与工具结果卡片
   // 布局
   fit: "cover",
-  position: "center",
-  // 高级自定义样式
-  customCssEnabled: false,
-  customCss: ""
+  position: "center"
 });
 var RANGES = Object.freeze({
   opacity: [0, 100],
@@ -48,9 +52,10 @@ var RANGES = Object.freeze({
   sepia: [0, 100],
   hueRotate: [-180, 180],
   surfaceOpacity: [0, 100],
+  titlebarOpacity: [0, 100],
+  popoverOpacity: [0, 100],
   conversationOpacity: [0, 100],
-  dialogOpacity: [0, 100],
-  outputOpacity: [0, 100]
+  dialogOpacity: [0, 100]
 });
 
 // src/index.js
@@ -64,6 +69,7 @@ var Config = z.object({
     opacity: numberField("opacity"),
     blur: numberField("blur"),
     shade: numberField("shade"),
+    gradient: z.union(GRADIENTS).default(DEFAULTS.gradient),
     maskColor: z.string().default(DEFAULTS.maskColor),
     zoom: numberField("zoom"),
     brightness: numberField("brightness"),
@@ -74,13 +80,12 @@ var Config = z.object({
     hueRotate: numberField("hueRotate"),
     canvasColor: z.string().default(DEFAULTS.canvasColor),
     surfaceOpacity: numberField("surfaceOpacity"),
+    titlebarOpacity: numberField("titlebarOpacity"),
+    popoverOpacity: numberField("popoverOpacity"),
     conversationOpacity: numberField("conversationOpacity"),
     dialogOpacity: numberField("dialogOpacity"),
-    outputOpacity: numberField("outputOpacity"),
     fit: z.union(["cover", "contain", "repeat"]).default(DEFAULTS.fit),
-    position: z.union(["center", "top", "bottom", "left", "right"]).default(DEFAULTS.position),
-    customCssEnabled: z.boolean().default(DEFAULTS.customCssEnabled),
-    customCss: z.string().max(MAX_CUSTOM_CSS).default(DEFAULTS.customCss)
+    position: z.union(["center", "top", "bottom", "left", "right"]).default(DEFAULTS.position)
   }).default({ ...DEFAULTS }).volatile()
 });
 function apply(ctx) {

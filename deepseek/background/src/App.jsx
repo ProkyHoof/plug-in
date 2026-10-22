@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { DEFAULTS, MAX_CUSTOM_CSS, hexToRgba, imageStyles } from './config.js';
+import { DEFAULTS, maskStyles, imageStyles } from './config.js';
 import { importImage, checkRemoteImage } from './image-import.js';
 
 export function ImageIcon({ size = 20 }) {
@@ -10,18 +10,9 @@ function Slider({ label, description, value, min = 0, max = 100, unit = '%', dis
   return <label className="bgp-slider"><span className="bgp-control-title">{label}<output>{value}{unit}</output></span><span className="bgp-caption">{description}</span><input aria-label={label} type="range" min={min} max={max} value={value} disabled={disabled} onChange={event => onChange(Number(event.target.value))} /></label>;
 }
 
-const CUSTOM_CSS_SAMPLE = [
-  '/* 自定义 CSS 示例：修改任意样式，保存后随配置持久化。',
-  '   可用浏览器开发者工具查看 Harness 界面元素的类名。 */',
-  '',
-  '/* 把纯色遮罩换成斜向渐变 */',
-  '.dsh-background-mask{',
-  '  background: linear-gradient(135deg, rgba(0,0,0,.45), rgba(0,0,0,0) 60%)!important;',
-  '}',
-  '',
-  '/* 调整 Harness 侧边栏（按需修改类名） */',
-  'body{ --dsw-specific-sidebar-fill: rgba(18,20,24,.72)!important; }',
-].join('\n');
+function Segments({ label, options, current, disabled, onSelect }) {
+  return <fieldset disabled={disabled}><legend>{label}</legend><div className="bgp-segments">{options.map(([id, text]) => <button key={id} type="button" aria-pressed={current === id} onClick={() => onSelect(id)}>{text}</button>)}</div></fieldset>;
+}
 
 export function App({ controller }) {
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
@@ -57,12 +48,8 @@ export function App({ controller }) {
     finally { if (mounted.current) setWorking(false); }
   }
   const change = key => next => controller.update({ [key]: next });
-  function insertSample() {
-    if (disabled) return;
-    controller.update({ customCssEnabled: true, customCss: value.customCss ? `${value.customCss.replace(/\s+$/, '')}\n\n${CUSTOM_CSS_SAMPLE}` : CUSTOM_CSS_SAMPLE });
-  }
   return <main className="bgp">
-    <header className="bgp-header"><div><div className="bgp-eyebrow"><ImageIcon size={14} />工作区外观</div><h1>背景图片<span>BACKGROUND</span></h1><p>选择一张喜欢的图片，调整成舒适的工作背景；也可以用自定义 CSS 修改任意样式。</p></div><label className="bgp-enable"><span>{value.enabled ? '背景已开启' : '背景已关闭'}</span><input type="checkbox" role="switch" aria-label="启用背景图片" checked={value.enabled} disabled={disabled || !hasImage} onChange={event => controller.update({ enabled: event.target.checked })} /><i /></label></header>
+    <header className="bgp-header"><div><div className="bgp-eyebrow"><ImageIcon size={14} />工作区外观</div><h1>背景图片<span>BACKGROUND</span></h1><p>选择一张喜欢的图片，拖动滑块即可调节背景、滤镜与每一块界面的透明度。</p></div><label className="bgp-enable"><span>{value.enabled ? '背景已开启' : '背景已关闭'}</span><input type="checkbox" role="switch" aria-label="启用背景图片" checked={value.enabled} disabled={disabled || !hasImage} onChange={event => controller.update({ enabled: event.target.checked })} /><i /></label></header>
     {(state.error || imageError) && <div className="bgp-banner bgp-error" role="alert">{imageError || state.error}</div>}
     {state.stale && <div className="bgp-banner bgp-warning" role="alert">其他窗口已修改背景，请点击“重新载入”后再编辑。</div>}
     {state.notice && <div className="bgp-banner" role="status">{state.notice}</div>}
@@ -80,11 +67,12 @@ export function App({ controller }) {
           <p className="bgp-note">本地图片会压缩后保存到当前 profile。GIF 将保存为静态图片。</p>
         </div>
         <div className="bgp-card bgp-layout"><div className="bgp-section-title"><h2>显示方式</h2><span>02 / 布局</span></div>
-          <fieldset disabled={disabled || !hasImage}><legend>图片适配</legend><div className="bgp-segments">{[['cover', '铺满'], ['contain', '完整显示'], ['repeat', '平铺']].map(([id, label]) => <button key={id} type="button" aria-pressed={value.fit === id} onClick={() => controller.update({ fit: id })}>{label}</button>)}</div></fieldset>
+          <Segments label="图片适配" disabled={disabled || !hasImage} current={value.fit} onSelect={id => controller.update({ fit: id })} options={[['cover', '铺满'], ['contain', '完整显示'], ['repeat', '平铺']]} />
           <label className="bgp-position">图片位置<select aria-label="图片位置" disabled={disabled || !hasImage} value={value.position} onChange={event => controller.update({ position: event.target.value })}><option value="center">居中</option><option value="top">顶部</option><option value="bottom">底部</option><option value="left">左侧</option><option value="right">右侧</option></select></label>
           <Slider label="图片缩放" description="放大图片减少留白，或缩小查看全貌" value={value.zoom} min={50} max={200} disabled={disabled || !hasImage} onChange={change('zoom')} />
         </div>
         <div className="bgp-card bgp-colors"><div className="bgp-section-title"><h2>颜色与遮罩</h2><span>03 / 色调</span></div>
+          <Segments label="渐变遮罩" disabled={disabled || !hasImage} current={value.gradient} onSelect={id => controller.update({ gradient: id })} options={[['none', '关闭'], ['bottom', '底部加深'], ['top', '顶部加深'], ['both', '上下加深']]} />
           <label className="bgp-color-row"><span>遮罩颜色<b>与暗色遮罩强度叠加</b></span><input type="color" aria-label="遮罩颜色" value={value.maskColor} disabled={disabled || !hasImage} onChange={event => change('maskColor')(event.target.value)} /></label>
           <label className="bgp-color-row"><span>背景底色<b>完整显示/平铺时的留白区域</b></span><span className="bgp-color-controls"><input type="checkbox" aria-label="启用自定义背景底色" checked={!!value.canvasColor} disabled={disabled} onChange={event => change('canvasColor')(event.target.checked ? (darkShell ? '#151517' : '#ffffff') : '')} /><input type="color" aria-label="背景底色" value={value.canvasColor || '#151517'} disabled={disabled || !value.canvasColor} onChange={event => change('canvasColor')(event.target.value)} /></span></label>
         </div>
@@ -93,8 +81,8 @@ export function App({ controller }) {
         <div className="bgp-preview-top"><span><i />实时预览</span><span>{state.dirty ? '正在预览 · 尚未保存' : '已保存的背景'}</span></div>
         <div className={`bgp-preview ${previewActive ? 'is-active' : ''}`} style={previewActive && value.canvasColor ? { backgroundColor: value.canvasColor } : undefined}>
           <div className="bgp-preview-photo" style={previewActive ? imageStyles(value) : { backgroundImage: 'none' }} />
-          <div className="bgp-preview-shade" style={{ backgroundColor: previewActive ? hexToRgba(value.maskColor, value.shade / 100) : 'transparent' }} />
-          <div className="bgp-preview-chrome"><span /><span /><span /><small>DeepSeek Harness</small></div>
+          <div className="bgp-preview-shade" style={previewActive ? maskStyles(value) : { backgroundImage: 'none', backgroundColor: 'transparent' }} />
+          <div className="bgp-preview-chrome" style={{ backgroundColor: `color-mix(in srgb, #eef2f4 ${previewActive ? value.titlebarOpacity : 100}%, transparent)` }}><span /><span /><span /><small>DeepSeek Harness</small></div>
           <div className="bgp-mini-sidebar" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${previewActive ? value.surfaceOpacity : 100}%, transparent)` }}><div className="bgp-mini-logo">◇</div><div /><div /><div /><span /><div /></div>
           <div className="bgp-mini-main"><span className="bgp-preview-label">你的工作区，换一幅风景</span><div className="bgp-mini-message" style={{ backgroundColor: `color-mix(in srgb, #729b8e ${previewActive ? value.dialogOpacity : 100}%, transparent)` }}>今天想做些什么？</div><div className="bgp-mini-response" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${previewActive ? value.dialogOpacity : 100}%, transparent)` }}>从一个新想法开始。<span /><span /></div><div className="bgp-mini-input" style={{ opacity: 0.7 + value.conversationOpacity / 400 }}>描述你想要构建的内容 <span>↑</span></div></div>
           {!hasImage && <div className="bgp-preview-empty"><ImageIcon size={29} /><span>导入图片后预览效果</span></div>}
@@ -108,21 +96,18 @@ export function App({ controller }) {
           <Slider label="褐化" description="怀旧胶片色调" value={value.sepia} disabled={disabled || !hasImage} onChange={change('sepia')} />
           <Slider label="色相旋转" description="整体偏移画面色彩" value={value.hueRotate} min={-180} max={180} unit="°" disabled={disabled || !hasImage} onChange={change('hueRotate')} />
         </div></div>
-        <div className="bgp-card bgp-adjustments"><div className="bgp-section-title"><h2>细节调节</h2><span>05 / 氛围</span></div><div className="bgp-slider-grid">
+        <div className="bgp-card bgp-adjustments"><div className="bgp-section-title"><h2>背景氛围</h2><span>05 / 氛围</span></div><div className="bgp-slider-grid">
           <Slider label="图片不透明度" description="降低数值，让背景更轻柔" value={value.opacity} disabled={disabled || !hasImage} onChange={change('opacity')} />
           <Slider label="背景模糊" description="柔化细节，减少视觉干扰" value={value.blur} max={30} unit="px" disabled={disabled || !hasImage} onChange={change('blur')} />
           <Slider label="暗色遮罩" description="配合遮罩颜色压低亮部" value={value.shade} max={80} disabled={disabled || !hasImage} onChange={change('shade')} />
-          <Slider label="面板不透明度" description="调节侧边栏等面板的透明程度" value={value.surfaceOpacity} disabled={disabled || !hasImage} onChange={change('surfaceOpacity')} />
-          <Slider label="对话透明度" description="调节输入框的透明程度" value={value.conversationOpacity} disabled={disabled || !hasImage} onChange={change('conversationOpacity')} />
-          <Slider label="对话框透明度" description="调节对话区域的透明程度（气泡与 AI 回复卡片）" value={value.dialogOpacity} disabled={disabled || !hasImage} onChange={change('dialogOpacity')} />
-          <Slider label="输出内容透明度" description="调节代码块和工具结果的透明程度" value={value.outputOpacity} disabled={disabled || !hasImage} onChange={change('outputOpacity')} />
         </div></div>
-        <div className="bgp-card bgp-custom"><div className="bgp-section-title"><h2>自定义 CSS</h2><span>06 / 任意样式</span></div>
-          <div className="bgp-custom-head"><p>高级选项：可书写任意 CSS，覆盖本插件背景层或 Harness 界面的任何样式；输入时实时预览，保存后随配置持久化。</p><label className="bgp-enable"><span>{value.customCssEnabled ? '自定义样式已启用' : '自定义样式已停用'}</span><input type="checkbox" role="switch" aria-label="启用自定义 CSS" checked={value.customCssEnabled} disabled={disabled} onChange={event => change('customCssEnabled')(event.target.checked)} /><i /></label></div>
-          <textarea aria-label="自定义 CSS 代码" className="bgp-code" spellCheck={false} placeholder={'/* 在这里书写任意 CSS，例如：\n   .dsh-background-mask{ background: linear-gradient(135deg, rgba(0,0,0,.45), rgba(0,0,0,0) 60%)!important; } */'} value={value.customCss} disabled={disabled || !value.customCssEnabled} maxLength={MAX_CUSTOM_CSS} onChange={event => change('customCss')(event.target.value)} />
-          <div className="bgp-custom-foot"><span>{value.customCss.length} / {MAX_CUSTOM_CSS}</span><button type="button" className="bgp-button" disabled={disabled} onClick={insertSample}>插入示例</button></div>
-          <p className="bgp-note">自定义 CSS 不依赖背景图片，关闭背景开关后仍然生效。若样式导致界面异常，关闭“自定义样式”开关并保存即可恢复。</p>
-        </div>
+        <div className="bgp-card bgp-surfaces"><div className="bgp-section-title"><h2>界面透明度</h2><span>06 / 面板</span></div><div className="bgp-slider-grid">
+          <Slider label="侧边栏透明度" description="调节左侧导航栏的透明程度" value={value.surfaceOpacity} disabled={disabled || !hasImage} onChange={change('surfaceOpacity')} />
+          <Slider label="标题栏透明度" description="调节窗口顶部标题栏的透明程度" value={value.titlebarOpacity} disabled={disabled || !hasImage} onChange={change('titlebarOpacity')} />
+          <Slider label="弹层菜单透明度" description="调节下拉菜单、弹窗与设置卡片" value={value.popoverOpacity} disabled={disabled || !hasImage} onChange={change('popoverOpacity')} />
+          <Slider label="文本框透明度" description="调节底部输入框的透明程度" value={value.conversationOpacity} disabled={disabled || !hasImage} onChange={change('conversationOpacity')} />
+          <Slider label="对话框透明度" description="调节对话气泡、代码块与工具结果卡片" value={value.dialogOpacity} disabled={disabled || !hasImage} onChange={change('dialogOpacity')} />
+        </div></div>
       </section>
     </div>
     <footer className="bgp-footer"><div><span className="bgp-status-dot" />{state.loading ? '正在读取背景设置…' : state.busy ? '正在保存…' : state.dirty ? '未保存的修改仅用于当前窗口预览' : '设置保存在当前 Harness profile'}</div><div className="bgp-footer-actions"><button type="button" className="bgp-button" disabled={disabled} onClick={() => controller.update({ ...DEFAULTS, image: value.image, imageName: value.imageName, enabled: hasImage })}>重置参数</button><button type="button" className="bgp-button" disabled={state.busy || working || state.loading} onClick={() => { setImageError(''); void controller.load(true); }}>重新载入</button><button type="button" className="bgp-button bgp-primary" disabled={disabled || !state.dirty || state.stale} onClick={() => controller.save()}>{state.busy ? '正在保存…' : '保存背景'}</button></div></footer>
@@ -130,5 +115,5 @@ export function App({ controller }) {
 }
 
 export function SettingsRow({ open }) {
-  return <div className="bgp-settings-row"><div><strong>背景图片</strong><p>导入背景，调整透明度、模糊、滤镜与任意自定义样式。</p></div><button type="button" onClick={open}>设置背景 →</button></div>;
+  return <div className="bgp-settings-row"><div><strong>背景图片</strong><p>导入背景，拖动滑块调节背景、滤镜、遮罩与各界面透明度。</p></div><button type="button" onClick={open}>设置背景 →</button></div>;
 }
