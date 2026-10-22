@@ -86,4 +86,8 @@ test('样式表包含 Windows 自定义标题栏 frame 透明修复与标题栏�
   assert.match(css, /--dsw-alias-markdown-code-block:color-mix\(in srgb,var\(--dsh-bg-code\) var\(--dsh-bg-dialog\),transparent\)!important/);
   // 弹层菜单透明度映射到菜单与浮层表面变量。
   assert.match(css, /--dsw-specific-menu:color-mix\(in srgb,var\(--dsh-bg-menu\) var\(--dsh-bg-popover\),transparent\)!important/);
+  // AI 回复内容卡片由对话框透明度控制。
+  assert.match(css, /\[class\*="v5IAXa_body"\][^}]*background:color-mix\(in srgb,var\(--dsh-bg-dialog-surface\) var\(--dsh-bg-dialog\),transparent\)!important/);
+  // 设置页预览面板固定（sticky）。
+  assert.match(css, /\.bgp-preview-panel\{[^}]*position:sticky/);
 });

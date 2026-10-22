@@ -76,3 +76,15 @@
 - 移除自定义 CSS：删除 `customCssEnabled`/`customCss` 字段、注入逻辑、设置卡片与测试；旧配置中的废弃字段被校验逻辑忽略，旧版缺少 `gradient` 等新字段时回退默认值。
 - 测试：重写 renderer/config/client 测试，覆盖渐变遮罩样式、五档透明度变量、废弃字段迁移与新 UI 交互；`npm run check` 19 项全部通过。
 - 真机验证：桌面端重装 1.2.0 后，通过 CDP 在真实运行的界面逐项调整：标题栏 / 弹层菜单 / 文本框 / 对话框滑块写入正确（`--dsh-bg-titlebar/popover/conversation/dialog` 与宿主 `--dsw-*` color-mix 即时生效），底部渐变遮罩输出为 `linear-gradient`；模型下拉菜单在弹层 30% 时保持毛玻璃且可读；旧 `--dsh-bg-output` 变量与 `style[data-dsh-background-custom]` 均不存在；设置页全量截图更新为 `docs/settings.png`（使用程序生成的抽象测试图，不含用户私人图片）。
+
+## 追加记录：1.2.1 AI 回复内容卡片与固定预览
+
+日期：2026-10-22。按用户要求：AI 输出内容纳入对话框透明度控制；设置页预览固定常驻。
+
+- **AI 回复内容卡片**：CDP 枚举真实会话 DOM 确认 AI 回复正文（`v5IAXa_body` 内的 `_markdown_` 容器）完全没有任何背景色，文字直接压在壁纸上。新增规则 `body[data-dsh-background-image] [class*="v5IAXa_body"]:has(>[class*="_markdown_"])`：背景为采样的 layer-1 表面（`--dsh-bg-dialog-surface`）与 `--dsh-bg-dialog` 的 color-mix，14px 圆角、14×18 内边距、随透明度联动的细边框；卡片内代码块变量重置为透明，避免双重叠色。
+- 折叠的思考段（`_3GBCTG_` 组件，51 个样本）不生成卡片，只对 23 个 markdown 正文段（含展开后的回答）渲染；通过 `:has()` 精确区分，真机逐一核对。
+- 工具结果文件卡片（`flL80G_file`，宿主在组件作用域内定义 `--deliverable-fill`）在 renderer 新增 `--dsh-bg-deliverable` 采样（浅色 `#fafafa` / 深色 neutral-850），并在卡片作用域覆盖，随对话框透明度联动。
+- 对话框透明度 0% 时正文与文件卡片均为透明（语义正确），100% 时正文为不透明卡片、文件卡片为 `#fafafa`；真机在 0%、75%、80%、100% 下核对。
+- **设置页布局**：`.bgp-grid` 改为左控件（六张卡片）/ 右预览双列；预览面板 `position:sticky;top:12px`，高度 `clamp(440px,calc(100vh-170px),680px)` 跟随窗口；滚动到 06 卡片时预览始终常驻；窄于 800px 单列时预览在最上方、取消 sticky。真机拖动滑块预览即时更新（如 40% 时回复卡片 `color(srgb 1 1 1 / 0.4)`）。
+- 测试：新增 AI 卡片规则与 sticky 布局的样式表回归断言，`npm run check` 19 项全部通过；`npm pack` 生成 `dsh-background-image-1.2.1.tgz`。
+- 真机：本地 tgz 经 remove/add 强制重装到 desktop（同名 tgz 会被 pnpm 缓存跳过，必须先 remove），CDP 验证上述全部场景；更新 `docs/settings.png`（1275×2211 全页，抽象测试图）与 `docs/chat-preview.png`（1280×800，AI 回复卡片）。

@@ -1,7 +1,7 @@
 import { imageStyles, maskStyles, validateConfig } from './config.js';
 
 const ATTRIBUTE = 'data-dsh-background-image';
-const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-bubble-highlight', '--dsh-bg-dialog-surface', '--dsh-bg-code', '--dsh-bg-code-banner', '--dsh-bg-menu', '--dsh-bg-surface', '--dsh-bg-titlebar', '--dsh-bg-popover', '--dsh-bg-conversation', '--dsh-bg-dialog'];
+const OWNED_VARIABLES = ['--dsh-bg-canvas', '--dsh-bg-sidebar', '--dsh-bg-input', '--dsh-bg-bubble', '--dsh-bg-bubble-highlight', '--dsh-bg-dialog-surface', '--dsh-bg-code', '--dsh-bg-code-banner', '--dsh-bg-menu', '--dsh-bg-deliverable', '--dsh-bg-surface', '--dsh-bg-titlebar', '--dsh-bg-popover', '--dsh-bg-conversation', '--dsh-bg-dialog'];
 
 export class BackgroundRenderer {
   constructor(document) {
@@ -36,6 +36,12 @@ export class BackgroundRenderer {
     this.body.style.setProperty('--dsh-bg-code', styles.getPropertyValue('--dsw-alias-markdown-code-block').trim() || (dark ? '#232327' : '#f6f8fa'));
     this.body.style.setProperty('--dsh-bg-code-banner', styles.getPropertyValue('--dsw-alias-markdown-code-block-banner').trim() || (dark ? '#2b2b2f' : '#eceff3'));
     this.body.style.setProperty('--dsh-bg-menu', styles.getPropertyValue('--dsw-specific-menu').trim() || (dark ? '#43454a73' : '#f8f9fa94'));
+    // 工具结果/交付物卡片（文件、引用等）的填充色，可能定义在卡片组件而非全局。
+    const deliverableCard = this.document.querySelector('[class*="flL80G_file"]');
+    const deliverable = styles.getPropertyValue('--deliverable-fill').trim()
+      || (deliverableCard ? this.document.defaultView.getComputedStyle(deliverableCard).getPropertyValue('--deliverable-fill').trim() : '')
+      || (dark ? '#26262b' : '#fafafa');
+    this.body.style.setProperty('--dsh-bg-deliverable', deliverable);
   }
 
   apply(raw) {

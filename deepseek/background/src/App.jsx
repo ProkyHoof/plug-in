@@ -55,7 +55,19 @@ export function App({ controller }) {
     {state.notice && <div className="bgp-banner" role="status">{state.notice}</div>}
     {!state.writable && !state.loading && <div className="bgp-banner bgp-warning">当前 Harness 配置为只读，无法修改背景。</div>}
     <div className="bgp-grid">
-      <section className="bgp-left">
+      <section className="bgp-preview-panel">
+        <div className="bgp-preview-top"><span><i />实时预览</span><span>{state.dirty ? '正在预览 · 尚未保存' : '已保存的背景'}</span></div>
+        <div className={`bgp-preview ${previewActive ? 'is-active' : ''}`} style={previewActive && value.canvasColor ? { backgroundColor: value.canvasColor } : undefined}>
+          <div className="bgp-preview-photo" style={previewActive ? imageStyles(value) : { backgroundImage: 'none' }} />
+          <div className="bgp-preview-shade" style={previewActive ? maskStyles(value) : { backgroundImage: 'none', backgroundColor: 'transparent' }} />
+          <div className="bgp-preview-chrome" style={{ backgroundColor: `color-mix(in srgb, #eef2f4 ${previewActive ? value.titlebarOpacity : 100}%, transparent)` }}><span /><span /><span /><small>DeepSeek Harness</small></div>
+          <div className="bgp-mini-sidebar" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${previewActive ? value.surfaceOpacity : 100}%, transparent)` }}><div className="bgp-mini-logo">◇</div><div /><div /><div /><span /><div /></div>
+          <div className="bgp-mini-main"><span className="bgp-preview-label">你的工作区，换一幅风景</span><div className="bgp-mini-message" style={{ backgroundColor: `color-mix(in srgb, #729b8e ${previewActive ? value.dialogOpacity : 100}%, transparent)` }}>今天想做些什么？</div><div className="bgp-mini-response" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${previewActive ? value.dialogOpacity : 100}%, transparent)` }}>从一个新想法开始。<span /><span /></div><div className="bgp-mini-input" style={{ opacity: 0.7 + value.conversationOpacity / 400 }}>描述你想要构建的内容 <span>↑</span></div></div>
+          {!hasImage && <div className="bgp-preview-empty"><ImageIcon size={29} /><span>导入图片后预览效果</span></div>}
+        </div>
+        <div className="bgp-preview-caption"><span>文字与控件保持清晰</span><span>预览固定，调节时实时可见</span></div>
+      </section>
+      <section className="bgp-controls">
         <div className="bgp-card"><div className="bgp-section-title"><h2>你的背景</h2><span>01 / 图片来源</span></div>
           <input ref={fileInput} className="bgp-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif" aria-label="选择本地背景图片" onChange={event => acceptFile(event.target.files?.[0])} disabled={disabled} />
           <button type="button" className={`bgp-upload ${dragging ? 'is-dragging' : ''} ${hasImage ? 'has-image' : ''}`} disabled={disabled} onClick={() => fileInput.current?.click()} onDragOver={event => { event.preventDefault(); if (!disabled) setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={event => { event.preventDefault(); setDragging(false); void acceptFile(event.dataTransfer.files[0]); }}>
@@ -76,18 +88,6 @@ export function App({ controller }) {
           <label className="bgp-color-row"><span>遮罩颜色<b>与暗色遮罩强度叠加</b></span><input type="color" aria-label="遮罩颜色" value={value.maskColor} disabled={disabled || !hasImage} onChange={event => change('maskColor')(event.target.value)} /></label>
           <label className="bgp-color-row"><span>背景底色<b>完整显示/平铺时的留白区域</b></span><span className="bgp-color-controls"><input type="checkbox" aria-label="启用自定义背景底色" checked={!!value.canvasColor} disabled={disabled} onChange={event => change('canvasColor')(event.target.checked ? (darkShell ? '#151517' : '#ffffff') : '')} /><input type="color" aria-label="背景底色" value={value.canvasColor || '#151517'} disabled={disabled || !value.canvasColor} onChange={event => change('canvasColor')(event.target.value)} /></span></label>
         </div>
-      </section>
-      <section className="bgp-right">
-        <div className="bgp-preview-top"><span><i />实时预览</span><span>{state.dirty ? '正在预览 · 尚未保存' : '已保存的背景'}</span></div>
-        <div className={`bgp-preview ${previewActive ? 'is-active' : ''}`} style={previewActive && value.canvasColor ? { backgroundColor: value.canvasColor } : undefined}>
-          <div className="bgp-preview-photo" style={previewActive ? imageStyles(value) : { backgroundImage: 'none' }} />
-          <div className="bgp-preview-shade" style={previewActive ? maskStyles(value) : { backgroundImage: 'none', backgroundColor: 'transparent' }} />
-          <div className="bgp-preview-chrome" style={{ backgroundColor: `color-mix(in srgb, #eef2f4 ${previewActive ? value.titlebarOpacity : 100}%, transparent)` }}><span /><span /><span /><small>DeepSeek Harness</small></div>
-          <div className="bgp-mini-sidebar" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${previewActive ? value.surfaceOpacity : 100}%, transparent)` }}><div className="bgp-mini-logo">◇</div><div /><div /><div /><span /><div /></div>
-          <div className="bgp-mini-main"><span className="bgp-preview-label">你的工作区，换一幅风景</span><div className="bgp-mini-message" style={{ backgroundColor: `color-mix(in srgb, #729b8e ${previewActive ? value.dialogOpacity : 100}%, transparent)` }}>今天想做些什么？</div><div className="bgp-mini-response" style={{ backgroundColor: `color-mix(in srgb, var(--bgp-surface) ${previewActive ? value.dialogOpacity : 100}%, transparent)` }}>从一个新想法开始。<span /><span /></div><div className="bgp-mini-input" style={{ opacity: 0.7 + value.conversationOpacity / 400 }}>描述你想要构建的内容 <span>↑</span></div></div>
-          {!hasImage && <div className="bgp-preview-empty"><ImageIcon size={29} /><span>导入图片后预览效果</span></div>}
-        </div>
-        <div className="bgp-preview-caption"><span>文字与控件保持清晰</span><span>预览比例随窗口变化</span></div>
         <div className="bgp-card bgp-filters"><div className="bgp-section-title"><h2>图片滤镜</h2><span>04 / 滤镜</span></div><div className="bgp-slider-grid">
           <Slider label="亮度" description="提亮或压暗背景图片" value={value.brightness} max={200} disabled={disabled || !hasImage} onChange={change('brightness')} />
           <Slider label="对比度" description="增强或减弱明暗反差" value={value.contrast} max={200} disabled={disabled || !hasImage} onChange={change('contrast')} />
@@ -106,7 +106,7 @@ export function App({ controller }) {
           <Slider label="标题栏透明度" description="调节窗口顶部标题栏的透明程度" value={value.titlebarOpacity} disabled={disabled || !hasImage} onChange={change('titlebarOpacity')} />
           <Slider label="弹层菜单透明度" description="调节下拉菜单、弹窗与设置卡片" value={value.popoverOpacity} disabled={disabled || !hasImage} onChange={change('popoverOpacity')} />
           <Slider label="文本框透明度" description="调节底部输入框的透明程度" value={value.conversationOpacity} disabled={disabled || !hasImage} onChange={change('conversationOpacity')} />
-          <Slider label="对话框透明度" description="调节对话气泡、代码块与工具结果卡片" value={value.dialogOpacity} disabled={disabled || !hasImage} onChange={change('dialogOpacity')} />
+          <Slider label="对话框透明度" description="调节 AI 回复内容、对话气泡、代码块与工具结果卡片" value={value.dialogOpacity} disabled={disabled || !hasImage} onChange={change('dialogOpacity')} />
         </div></div>
       </section>
     </div>
